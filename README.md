@@ -1,5 +1,14 @@
 # mpllib
-Standard library for the MPL compiler (https://github.com/mpllang/mpl)
+Standard library for the MPL compiler (https://github.com/mpllang/mpl).
+Compatible with the [smlpkg](https://github.com/diku-dk/smlpkg) package manager.
+
+## Usage
+
+```
+$ smlpkg add github.com/mpllang/mpllib
+```
+
+And then add one of the following `.mlb` source files to your project.
 
 ## Library sources
 
