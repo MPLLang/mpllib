@@ -6,6 +6,7 @@ Compatible with the [smlpkg](https://github.com/diku-dk/smlpkg) package manager.
 
 ```
 $ smlpkg add github.com/mpllang/mpllib
+$ smlpkg sync
 ```
 
 And then add one of the following `.mlb` source files to your project.
