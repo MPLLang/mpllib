@@ -161,7 +161,7 @@ struct
   fun filterIdx p s =
     AS.full (SeqBasis.filter GRAN (0, length s) (nth s) (fn i => p (i, nth s i)))
 
-  fun filtermap (f:'a -> 'b) (p: 'a -> bool) (s: 'a t): 'b t =
+  fun filtermap (p: 'a -> bool) (f:'a -> 'b) (s: 'a t): 'b t =
      AS.full (SeqBasis.filter GRAN (0, length s) (fn i => f (nth s i)) (p o nth s))
 
 
