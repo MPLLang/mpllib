@@ -158,8 +158,12 @@ struct
 
 
   fun filter p s =
+    (* Assumes that the predicate p is pure *)
     AS.full (SeqBasis.filter GRAN (0, length s) (nth s) (p o nth s))
 
+  fun filterSafe p s = 
+    (* Does not assume that the predicate p is pure *)
+    AS.full (SeqBasis.tabFilter GRAN (0, length s) (fn i => if p (nth s i) then SOME (nth s i) else NONE))
 
   fun filterIdx p s =
     AS.full (SeqBasis.filter GRAN (0, length s) (nth s) (fn i => p (i, nth s i)))
