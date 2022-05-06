@@ -29,7 +29,6 @@ struct
   type 'a t = 'a AS.t
   type 'a seq = 'a t
 
-
   (* for compatibility across all sequence implementations *)
   fun fromArraySeq s = s
   fun toArraySeq s = s
@@ -39,12 +38,16 @@ struct
   val nth = AS.nth
   val length = AS.length
 
-
   fun empty () = AS.full (A.fromList [])
   fun singleton x = AS.full (A.array (1, x))
   val $ = singleton
   fun toString f s =
     "<" ^ String.concatWith "," (List.tabulate (length s, f o nth s)) ^ ">"
+
+
+  fun fromArray a = AS.full a
+
+
   fun fromList l = AS.full (A.fromList l)
   val % = fromList
   fun toList s =
