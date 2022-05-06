@@ -122,6 +122,16 @@ struct
     SeqBasis.foldl f b (0, length s) (nth s)
 
 
+  fun iteratePrefixes f b s =
+    let 
+      let 
+        fun g (l, b) a = (b::l, f(b, a))
+        val (l, r) = iterate g ([], b) s
+      in 
+        fromList (List.rev l, r)
+      end
+
+
   fun reduce f b s =
     SeqBasis.reduce GRAN f b (0, length s) (nth s)
 
@@ -133,6 +143,8 @@ struct
       (take p (length s), nth p (length s))
     end
 
+  fun scanWithTotal f b s =
+    AS.full (SeqBasis.scan GRAN f b (0, length s) (nth s))
 
   fun scanIncl f b s =
     let
@@ -148,6 +160,9 @@ struct
 
   fun filterIdx p s =
     AS.full (SeqBasis.filter GRAN (0, length s) (nth s) (fn i => p (i, nth s i)))
+
+  fun filtermap (f:'a -> 'b) (p: 'a -> bool) (s: 'a t): 'b t =
+     AS.full (SeqBasis.filter GRAN (0, length s) (fn i => f (nth s i)) (p o nth s))
 
 
   fun mapOption f s =
