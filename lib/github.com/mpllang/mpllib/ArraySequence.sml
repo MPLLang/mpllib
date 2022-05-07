@@ -122,6 +122,12 @@ struct
     end
 
 
+  fun foldl f b s =
+    SeqBasis.foldl f b (0, length s) (nth s)
+
+  fun foldr f b s =
+    SeqBasis.foldr f b (~1, length s-1) (nth s)
+
   fun iterate f b s =
     SeqBasis.foldl f b (0, length s) (nth s)
 
