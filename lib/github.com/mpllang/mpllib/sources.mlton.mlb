@@ -22,6 +22,7 @@ DelayedSeq.sml
 FuncSequence.sml
 BinarySearch.sml
 Merge.sml
+StableMerge.sml
 Quicksort.sml
 Mergesort.sml
 TreeMatrix.sml
