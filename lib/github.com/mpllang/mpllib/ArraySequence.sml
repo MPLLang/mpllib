@@ -59,7 +59,8 @@ struct
     AS.subslice (s, i, SOME k)
   fun take s n = subseq s (0, n)
   fun drop s n = subseq s (n, length s - n)
-
+  fun first s = nth s 0
+  fun last s = nth s (length s - 1)
 
   fun tabulate f n =
     AS.full (SeqBasis.tabulate GRAN (0, n) f)
@@ -127,12 +128,17 @@ struct
 
   fun iteratePrefixes f b s =
     let 
-      let 
-        fun g (l, b) a = (b::l, f(b, a))
-        val (l, r) = iterate g ([], b) s
-      in 
-        fromList (List.rev l, r)
-      end
+      val prefixes = alloc (length s)
+      fun g ((i, b), a) = 
+        let 
+          val _ = A.update (prefixes, i, b)
+        in
+          (i+1, f (b, a))
+        end
+      val (_, r) = iterate g (0, b) s
+    in 
+        (AS.full prefixes, r)
+    end
 
 
   fun reduce f b s =
