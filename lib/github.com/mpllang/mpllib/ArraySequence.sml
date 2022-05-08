@@ -29,7 +29,6 @@ struct
   type 'a t = 'a AS.t
   type 'a seq = 'a t
 
-
   (* for compatibility across all sequence implementations *)
   fun fromArraySeq s = s
   fun toArraySeq s = s
@@ -39,12 +38,16 @@ struct
   val nth = AS.nth
   val length = AS.length
 
-
   fun empty () = AS.full (A.fromList [])
   fun singleton x = AS.full (A.array (1, x))
   val $ = singleton
   fun toString f s =
     "<" ^ String.concatWith "," (List.tabulate (length s, f o nth s)) ^ ">"
+
+
+  fun fromArray a = AS.full a
+
+
   fun fromList l = AS.full (A.fromList l)
   val % = fromList
   fun toList s =
@@ -56,7 +59,8 @@ struct
     AS.subslice (s, i, SOME k)
   fun take s n = subseq s (0, n)
   fun drop s n = subseq s (n, length s - n)
-
+  fun first s = nth s 0
+  fun last s = nth s (length s - 1)
 
   fun tabulate f n =
     AS.full (SeqBasis.tabulate GRAN (0, n) f)
@@ -118,8 +122,29 @@ struct
     end
 
 
+  fun foldl f b s =
+    SeqBasis.foldl f b (0, length s) (nth s)
+
+  fun foldr f b s =
+    SeqBasis.foldr f b (0, length s) (nth s)
+
   fun iterate f b s =
     SeqBasis.foldl f b (0, length s) (nth s)
+
+
+  fun iteratePrefixes f b s =
+    let 
+      val prefixes = alloc (length s)
+      fun g ((i, b), a) = 
+        let 
+          val _ = A.update (prefixes, i, b)
+        in
+          (i+1, f (b, a))
+        end
+      val (_, r) = iterate g (0, b) s
+    in 
+        (AS.full prefixes, r)
+    end
 
 
   fun reduce f b s =
@@ -133,6 +158,8 @@ struct
       (take p (length s), nth p (length s))
     end
 
+  fun scanWithTotal f b s =
+    AS.full (SeqBasis.scan GRAN f b (0, length s) (nth s))
 
   fun scanIncl f b s =
     let
@@ -143,11 +170,18 @@ struct
 
 
   fun filter p s =
+    (* Assumes that the predicate p is pure *)
     AS.full (SeqBasis.filter GRAN (0, length s) (nth s) (p o nth s))
 
+  fun filterSafe p s = 
+    (* Does not assume that the predicate p is pure *)
+    AS.full (SeqBasis.tabFilter GRAN (0, length s) (fn i => if p (nth s i) then SOME (nth s i) else NONE))
 
   fun filterIdx p s =
     AS.full (SeqBasis.filter GRAN (0, length s) (nth s) (fn i => p (i, nth s i)))
+
+  fun filtermap (p: 'a -> bool) (f:'a -> 'b) (s: 'a t): 'b t =
+     AS.full (SeqBasis.filter GRAN (0, length s) (fn i => f (nth s i)) (p o nth s))
 
 
   fun mapOption f s =

@@ -10,6 +10,12 @@ sig
           -> (int -> 'a)
           -> 'b
 
+  val foldr: ('b * 'a -> 'b)
+          -> 'b
+          -> (int * int)
+          -> (int -> 'a)
+          -> 'b
+
   val reduce: grain
            -> ('a * 'a -> 'a)
            -> 'a
@@ -73,6 +79,15 @@ struct
       val b' = g (b, f lo)
     in
       foldl g b' (lo+1, hi) f
+    end
+
+  fun foldr g b (lo, hi) f =
+    if lo > hi then b else
+    let
+      val hi' = hi-1
+      val b' = g (b, f hi')
+    in
+      foldr g b' (lo, hi') f
     end
 
   fun reduce grain g b (lo, hi) f =
