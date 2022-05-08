@@ -82,11 +82,12 @@ struct
     end
 
   fun foldr g b (lo, hi) f =
-    if lo >= hi then b else
+    if lo > hi then b else
     let
-      val b' = g (b, f hi)
+      val hi' = hi-1
+      val b' = g (b, f hi')
     in
-      foldr g b' (lo, hi-1) f
+      foldr g b' (lo, hi') f
     end
 
   fun reduce grain g b (lo, hi) f =
