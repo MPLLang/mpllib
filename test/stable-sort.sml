@@ -7,13 +7,9 @@ fun kcmp (a, b) = Int.compare (a, b)
 fun vcmp (u, v) = Int.compare (u, v)
 fun cmp ((a, _), (b, _)) = kcmp (a, b)
 
-val keys1 = Mergesort.sort kcmp (Seq.tabulate (fn i => Util.hash (seed+i) mod keys) n)
-val keys2 = Mergesort.sort kcmp (Seq.tabulate (fn i => Util.hash (seed+n+i) mod keys) n)
+val elems = Seq.tabulate (fn i => (Util.hash (seed+i) mod keys, i)) n
 
-val elems1 = Seq.mapIdx (fn (i, k) => (k, i)) keys1
-val elems2 = Seq.mapIdx (fn (i, k) => (k, n+i)) keys2
-
-val result = StableMerge.merge cmp (elems1, elems2)
+val result = StableSort.sort cmp elems
 
 val _ = print ("result: " ^ Util.summarizeArraySlice 10 (fn (k, v) => "(" ^ Int.toString k ^ "," ^ Int.toString v ^ ")") result ^ "\n")
 

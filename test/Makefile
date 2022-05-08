@@ -1,7 +1,7 @@
 MPL=mpl
 FLAGS=-default-type int64 -default-type word64
 
-TESTS=stable-merge
+TESTS=stable-merge stable-sort
 
 $(TESTS): phony
 	$(MPL) $(FLAGS) -output $@ $@.mlb

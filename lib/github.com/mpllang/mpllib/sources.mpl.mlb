@@ -23,6 +23,7 @@ FuncSequence.sml
 BinarySearch.sml
 Merge.sml
 StableMerge.sml
+StableSort.sml
 Quicksort.sml
 Mergesort.sml
 TreeMatrix.sml
