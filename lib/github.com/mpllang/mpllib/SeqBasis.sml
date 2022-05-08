@@ -82,7 +82,7 @@ struct
     end
 
   fun foldr g b (lo, hi) f =
-    if lo > hi then b else
+    if lo >= hi then b else
     let
       val hi' = hi-1
       val b' = g (b, f hi')
