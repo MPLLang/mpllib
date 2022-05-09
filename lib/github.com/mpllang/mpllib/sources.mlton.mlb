@@ -44,6 +44,8 @@ ParseFile.sml
 AdjacencyGraph.sml
 AdjacencyInt.sml
 
+CheckSort.sml
+
 Geometry3D.sml
 Geometry2D.sml
 Topology2D.sml

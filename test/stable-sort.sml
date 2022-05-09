@@ -4,43 +4,46 @@ val keys = CLA.parseInt "keys" 100
 val seed = CLA.parseInt "seed" 15210
 val numTests = CLA.parseInt "num-tests" 10
 
-fun kcmp (a, b) = Int.compare (a, b)
-fun vcmp (u, v) = Int.compare (u, v)
-fun cmp ((a, _), (b, _)) = kcmp (a, b)
+val _ = print ("size " ^ Int.toString n ^ "\n")
+val _ = print ("keys " ^ Int.toString keys ^ "\n")
+val _ = print ("num-tests " ^ Int.toString numTests ^ "\n")
 
-fun checkone seed =
+val _ =
+  if keys * 10 < n then () else
+    print ("WARNING: lots of unique keys. We recommend to using a small number \
+           \of keys relative to the number of elements, to encourage \
+           \duplicates and stress stability\n")
+
+fun err msg =
+  ( TextIO.output (TextIO.stdErr, "ERROR: " ^ msg ^ "\n")
+  ; OS.Process.exit OS.Process.failure
+  )
+
+structure CheckSort = CheckSort (val sort_func = StableSort.sort)
+
+fun checkone testNum seed =
   let
-    val elems = Seq.tabulate (fn i => (Util.hash (seed+i) mod keys, i)) n
+    val input = Seq.tabulate (fn i => Util.hash (seed+i) mod keys) n
+    val maybeError = CheckSort.check
+      { compare = Int.compare
+      , input = input
+      , check_stable = true
+      }
 
-    val result = StableSort.sort cmp elems
-
-    val _ = print ("result: " ^ Util.summarizeArraySlice 8 (fn (k, v) => "(" ^ Int.toString k ^ "," ^ Int.toString v ^ ")") result ^ "\n")
-
-    fun err msg =
-      (print ("ERROR: " ^ msg ^ "\n"); OS.Process.exit OS.Process.failure)
-
-    fun checkloop (prevKey, prevVal) i =
-      if i >= Seq.length result then ()
-      else
-        let
-          val (key, value) = Seq.nth result i
-          fun continue () = checkloop (key, value) (i+1)
-        in
-          case kcmp (prevKey, key) of
-            LESS => continue ()
-          | GREATER => err "not merged properly"
-          | EQUAL =>
-              case vcmp (prevVal, value) of
-                LESS => continue ()
-              | GREATER => err "not stable"
-              | EQUAL => err "bug in test (should be impossible)"
-        end
-
-    val _ = checkloop (~1, ~1) 0
-    val _ = print ("TEST PASSED\n")
+    fun msg s =
+      "[" ^ Int.toString (testNum+1) ^ "/" ^ Int.toString numTests ^ "]: " ^ s
   in
-    ()
+    case maybeError of
+      NONE => ()
+    | SOME e =>
+        case e of
+          CheckSort.LengthChange => err (msg "incorrect length")
+        | CheckSort.MissingElem _ => err (msg "missing element")
+        | CheckSort.Inversion _ => err (msg "not sorted")
+        | CheckSort.Unstable _ => err (msg "not stable");
+
+    print (msg "test passed" ^ "\n")
   end
 
-val _ = Util.loop (0, numTests) seed (fn (seed, _) =>
-  (checkone seed; Util.hash seed))
+val _ = Util.loop (0, numTests) seed (fn (seed, i) =>
+  (checkone i seed; Util.hash seed))
