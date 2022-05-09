@@ -22,6 +22,8 @@ DelayedSeq.sml
 FuncSequence.sml
 BinarySearch.sml
 Merge.sml
+StableMerge.sml
+StableSort.sml
 Quicksort.sml
 Mergesort.sml
 TreeMatrix.sml
@@ -41,6 +43,8 @@ ParseFile.sml
 (* TabFilterTree.sml *)
 AdjacencyGraph.sml
 AdjacencyInt.sml
+
+CheckSort.sml
 
 Geometry3D.sml
 Geometry2D.sml
