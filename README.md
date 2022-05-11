@@ -22,9 +22,21 @@ The former is for use with MPL, the latter with MLton.
 
 ## Documentation
 
-Sequences
-* `structure `[`Seq`](doc/Seq.md)
-* `structure ArraySequence = `[`Seq`](doc/Seq.md)
-* `structure `[`DelayedSeq`](doc/DelayedSeq.md)
+Primitives for parallelism and concurrency
+* `structure` [`ForkJoin`](doc/ForkJoin.md)
+* `structure` [`Concurrency`](doc/Concurrency.md)
 
-TODO...
+Sequences
+* `structure` [`Seq`](doc/Seq.md)
+* `structure ArraySequence =` [`Seq`](doc/Seq.md)
+* `structure` [`DelayedSeq`](doc/DelayedSeq.md)
+* `structure` [`SeqBasis`](doc/SeqBasis.md)
+
+Sorting
+* `structure` [`Merge`](doc/Merge.md)
+* `structure` [`StableMerge`](doc/StableMerge.md)
+* `structure` [`StableSort`](doc/StableSort.md)
+* `structure` [`Mergesort`](doc/Mergesort.md)
+* `structure` [`SampleSort`](doc/SampleSort.md)
+* `structure` [`CountingSort`](doc/CountingSort.md)
+* `structure` [`Quicksort.sml`](doc/Quicksort.md)
