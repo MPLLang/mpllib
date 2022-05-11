@@ -33,15 +33,15 @@ fun sumNonNegative (s: int Seq.t) =
 
 
 (** For example:
-  *   evenMultiplesLessThan 21 [3,5]  ==>  [6,12,18,10,20]
+  *   evenMultiplesUpto 21 [3,5]  ==>  [6,12,18,10,20]
   *)
-fun evenMultiplesLessThan (n: int) (s: int Seq.t) =
+fun evenMultiplesUpto (n: int) (s: int Seq.t) =
   let
     fun multiples x =
       let
         val numMultiples = n div x - 1
       in
-        DS.tabulate (fn i => (i+2)*x)
+        DS.tabulate (fn i => (i+2)*x) numMultiples
       end
   in
     DS.toArraySeq (DS.filter (fn x => x mod 2 = 0)
