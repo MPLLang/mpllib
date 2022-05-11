@@ -20,6 +20,11 @@ Two source files:
 
 The former is for use with MPL, the latter with MLton.
 
-## Interface
+## Documentation
+
+Sequences
+* `structure `[`Seq`](doc/Seq.md)
+* `structure ArraySequence = `[`Seq`](doc/Seq.md)
+* `structure `[`DelayedSeq`](doc/DelayedSeq.md)
 
 TODO...
