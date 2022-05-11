@@ -39,4 +39,4 @@ Sorting
 * `structure` [`Mergesort`](doc/Mergesort.md)
 * `structure` [`SampleSort`](doc/SampleSort.md)
 * `structure` [`CountingSort`](doc/CountingSort.md)
-* `structure` [`Quicksort.sml`](doc/Quicksort.md)
+* `structure` [`Quicksort`](doc/Quicksort.md)
