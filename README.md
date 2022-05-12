@@ -23,20 +23,24 @@ The former is for use with MPL, the latter with MLton.
 ## Documentation
 
 Primitives for parallelism and concurrency
-* `structure` [`ForkJoin`](doc/ForkJoin.md)
-* `structure` [`Concurrency`](doc/Concurrency.md)
+* structure [`ForkJoin`](doc/ForkJoin.md)
+* structure [`Concurrency`](doc/Concurrency.md)
 
 Sequences
-* `structure` [`Seq`](doc/Seq.md)
-* `structure ArraySequence =` [`Seq`](doc/Seq.md)
-* `structure` [`DelayedSeq`](doc/DelayedSeq.md)
-* `structure` [`SeqBasis`](doc/SeqBasis.md)
+* structure [`Seq`](doc/Seq.md)
+* structure [`ArraySequence = Seq`](doc/Seq.md)
+* structure [`DelayedSeq`](doc/DelayedSeq.md)
+* structure [`SeqBasis`](doc/SeqBasis.md)
 
 Sorting
-* `structure` [`Merge`](doc/Merge.md)
-* `structure` [`StableMerge`](doc/StableMerge.md)
-* `structure` [`StableSort`](doc/StableSort.md)
-* `structure` [`Mergesort`](doc/Mergesort.md)
-* `structure` [`SampleSort`](doc/SampleSort.md)
-* `structure` [`CountingSort`](doc/CountingSort.md)
-* `structure` [`Quicksort`](doc/Quicksort.md)
+* structure [`Merge`](doc/Merge.md)
+* structure [`StableMerge`](doc/StableMerge.md)
+* structure [`StableSort`](doc/StableSort.md)
+* structure [`Mergesort`](doc/Mergesort.md)
+* structure [`SampleSort`](doc/SampleSort.md)
+* structure [`CountingSort`](doc/CountingSort.md)
+* structure [`Quicksort`](doc/Quicksort.md)
+
+Searching
+* structure [`BinarySearch`](doc/BinarySearch.md)
+* structure [`FindFirst`](doc/FindFirst.md)
