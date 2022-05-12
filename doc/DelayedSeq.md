@@ -1,11 +1,6 @@
 # structure DelayedSeq
 
-An implementation of parallel block-delayed sequences, as presented in
-the paper:
-> [**Parallel Block-Delayed Sequences**](https://dl.acm.org/doi/10.1145/3503221.3508434).
-> Sam Westrick, Mike Rainey, Daniel Anderson, Guy E. Blelloch.
-> PPoPP'22
-
+Polymorphic immutable sequences.
 The interface is the same as [`Seq`](Seq.md). The difference is that delayed
 sequences avoid allocating temporary intermediate arrays, to improve
 performance. In general, most pipelines of operations such as
@@ -16,6 +11,11 @@ The intended usage is to first convert a sequence to a delayed version
 with `DelayedSeq.fromArraySeq`, then perform a pipeline, and finally
 (if there is some output sequence) convert the result back to a normal
 sequence with `DelayedSeq.toArraySeq`.
+
+This implementation is based on this paper:
+> [**Parallel Block-Delayed Sequences**](https://dl.acm.org/doi/10.1145/3503221.3508434).
+> Sam Westrick, Mike Rainey, Daniel Anderson, Guy E. Blelloch.
+> PPoPP'22
 
 ## Examples
 
