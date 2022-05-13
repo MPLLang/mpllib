@@ -26,6 +26,10 @@ Primitives for parallelism and concurrency
 * structure [`ForkJoin`](doc/ForkJoin.md)
 * structure [`Concurrency`](doc/Concurrency.md)
 
+Files and Command-line Arguments
+* structure [`ReadFile`](doc/ReadFile.md)
+* structure [`CommandLineArgs`](doc/CommandLineArgs.md)
+
 Sequences
 * structure [`Seq`](doc/Seq.md)
 * structure [`ArraySequence = Seq`](doc/Seq.md)
@@ -48,6 +52,8 @@ Searching
 Graphs
 * functor [`AdjacencyGraph`](doc/AdjacencyGraph.md)
 
-Files and Command-line Arguments
-* structure [`ReadFile`](doc/ReadFile.md)
-* structure [`CommandLineArgs`](doc/CommandLineArgs.md)
+Geometry
+* structure [`Geometry2D`](doc/Geometry2D.md)
+* structure `Geometry3D`
+* structure [`Topology2D`](doc/Topology2D.md)
+* structure `MeshToImage`
