@@ -44,3 +44,10 @@ Sorting
 Searching
 * structure [`BinarySearch`](doc/BinarySearch.md)
 * structure [`FindFirst`](doc/FindFirst.md)
+
+Graphs
+* functor [`AdjacencyGraph`](doc/AdjacencyGraph.md)
+
+Files and Command-line Arguments
+* structure [`ReadFile`](doc/ReadFile.md)
+* structure [`CommandLineArgs`](doc/CommandLineArgs.md)
