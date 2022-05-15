@@ -34,11 +34,11 @@ For vertices `(u,v,w)` and neighbors `(a,b,c)`, the neighbor `a` must be
 across the face `(w,u)`, neighbor `b` must be across face `(u,v)`, and neighbor
 `c` must be across face `(v,w)`, as shown below:
 ```
+      w
+      | \ --> c
+a <-- |  v
+      | / --> b
       u
-      | \ --> a
-b <-- |  w
-      | / --> c
-      v
 ```
 
 ```sml
@@ -99,5 +99,94 @@ val find: mesh -> vertex -> simplex -> simplex
 val findPoint: mesh -> Geometry2D.point -> simplex -> simplex
 ```
 
-TODO...
+Walk through a mesh to find where a point lies. The resulting triangle
+will either have that point on its boundary, or within its center. In the
+case of `find`, we search for a vertex in the mesh. For `findPoint`, we search
+for any arbitrary point within the convex boundary of the mesh.
 
+```sml
+val across: mesh -> simplex -> simplex option
+```
+
+`across mesh s` returns the simplex across the distinguished edge of `s`.
+The distinguished edge of the resulting simplex is the one shared with `s`.
+
+If there is no such simplex, it returns `NONE`.
+
+```sml
+val rotateClockwise: simplex -> simplex
+```
+
+Rotate the simplex to choose the next distinguished edge. For example,
+in the following, if `a` is the distinguished edge, then after rotation,
+the new distinguished edge is `b`:
+```
+        w                                         u
+        | \ --> c      rotateClockwise            | \ --> a
+*a* <-- |  v           ==============>    *b* <-- |  w
+        | / --> b                                 | / --> c
+        u                                         v
+```
+
+
+```sml
+val outside: mesh -> simplex -> vertex -> bool
+val pointOutside: mesh -> simplex -> Geometry2D.point -> bool
+```
+
+Test if a vertex or arbitrary point is outside a simplex, across its
+distinguished edge. (I.e., on the other side of the line defined by
+the distinguished edge).
+
+```sml
+val inCircle: mesh -> simplex -> vertex -> bool
+val pointInCircle: mesh -> simplex -> Geometry2D.point -> bool
+```
+
+Test if a vertex or arbitrary point is within the circumcircle of a simplex.
+
+```sml
+val firstVertex: mesh -> simplex -> vertex
+```
+
+When viewing a simplex with its distinguished edge on the left, return the
+"bottom" vertex. For example, in the picture below, `u` is the first vertex.
+
+```
+      w
+      | \ --> c
+a <-- |  v
+      | / --> b
+      u
+```
+
+## Mesh Updates
+
+```sml
+val split: mesh -> triangle -> Geometry2D.point -> mesh
+```
+
+`split mesh t p` splits the triangle `t` by putting a new vertex at point
+`p`, creating two new triangles. **Requires** the point `p` must be within
+the triangle `t`.
+
+For example below, the new vertex is labeled `v` and the two new triangles
+created are labeled `ta0` and `ta1`.
+
+```
+  BEFORE:                    AFTER:
+    v1                         v1
+    |\                         |\\
+    |   \    t1                | \ \    t1
+    |      \                   |  \   \
+    |         \                |   \  t  \
+t2  |    t     v3          t2  |ta0 v --- v3
+    |         /                |   / ta1 /
+    |      /                   |  /   /
+    |   /    t3                | / /    t3
+    |/                         |//
+    v2                         v2
+```
+
+
+(TODO... more functions from the interface)
