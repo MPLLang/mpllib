@@ -4,114 +4,149 @@ struct
 
   structure G = AdjacencyGraph(Int)
   structure AS = ArraySlice
-  structure DS = DelayedSeq
+  open G.VertexSubset
 
-
-  (* fun sumOfOutDegrees frontier =
-    SeqBasis.reduce 10000 op+ 0 (0, Seq.length frontier) (degree o Seq.nth frontier)
-    (* DS.reduce op+ 0 (DS.map degree (DS.fromArraySeq frontier)) *)
-
-  fun shouldProcessDense frontier =
-    let
-      val n = Seq.length frontier
-      val m = sumOfOutDegrees frontier
-    in
-      n + m > denseThreshold
-    end *)
-
-  fun should_process_sparse g V =
+  fun should_process_sparse g n  =
     let
       val denseThreshold = G.numEdges g div 20
-      val totalOutDegree =
-        SeqBasis.reduce 10000 op+ 0 (0, Seq.length V) (G.degree g o Seq.nth V)
-      val n = Seq.length V
-      val m = totalOutDegree
+      val deg = Int.div (G.numEdges g, G.numVertices g)
+      val count = (1 + deg) * n
     in
-      n + m <= denseThreshold
+      count <= denseThreshold
     end
-
 
   fun edge_map_dense g vertices f h =
     let
-      val inFrontier = Seq.tabulate (fn _ => false) (G.numVertices g)
-      val _ = Seq.foreach vertices (fn (_, v) =>
-        ArraySlice.update (inFrontier, v, true))
+      val inFrontier = vertices
+      val n = Seq.length vertices
+      val res = Seq.tabulate (fn _ => 0) n
 
       fun processVertex v =
-        if not (h v) then NONE
+        if not (h v) then 0
         else
           let
             val neighbors = G.neighbors g v
             fun loop i =
-              if i >= Seq.length neighbors then NONE else
+              if i >= Seq.length neighbors then 0 else
               let val u = Seq.nth neighbors i
               in
-                if not (Seq.nth inFrontier u) then
+                if not (Seq.nth inFrontier u = 1) then
                   loop (i+1)
                 else
-                case f (u, v) of
-                  NONE => loop (i+1)
-                | SOME x => SOME x
+                  case f (u, v) of
+                    NONE => loop (i+1)
+                  | SOME x => (AS.update (res, x, 1); 1)
               end
           in
             loop 0
           end
+      val count = SeqBasis.reduce 1000 op+ 0 (0, n) processVertex
     in
-      AS.full (SeqBasis.tabFilter 100 (0, G.numVertices g) processVertex)
+      (res, count)
     end
-
 
   fun edge_map_sparse g vertices f h =
     let
-      fun app_vertex u =
+      val n = Seq.length vertices
+      fun ui uidx = Seq.nth vertices uidx
+      val r =
+        SeqBasis.scan 1000 op+ 0 (0, n) (G.degree g o ui)
+      val (offsets, totalOutDegree) = (AS.full r, Array.sub (r, n))
+      val store = ForkJoin.alloc totalOutDegree
+      val k = 100
+      val numBlocks = 1 + (totalOutDegree-1) div k
+      fun map_block i =
         let
-          val all_ngbrs = (G.neighbors g u)
-          fun ds i =  let
-                        val v = Seq.nth all_ngbrs i
-                      in
-                        if h (v) then f (u, v)
-                        else NONE
-                      end
-          val m = SeqBasis.tabFilter 10000 (0, Seq.length all_ngbrs) ds
+          val lo = i*k
+          val hi = Int.min((i+1)*k, totalOutDegree)
+          val ulo =
+            let
+              val a = BinarySearch.search (Int.compare) offsets lo
+            in
+              if (Seq.nth offsets a) > lo then a - 1
+              else a
+            end
+          fun map_seq idx (u, uidx) count =
+            if idx >= hi then count
+            else if idx >= (Seq.nth offsets (uidx + 1)) then map_seq idx (ui (uidx + 1), uidx + 1) count
+            else
+              let
+                val v = Seq.nth (G.neighbors g u) (idx - (Seq.nth offsets uidx))
+              in
+                if (h v) then
+                  case f (u, v) of
+                    SOME x => (Array.update (store, lo + count, x); map_seq (idx + 1) (u, uidx) (count + 1))
+                  | NONE => (map_seq (idx + 1) (u, uidx) count)
+                else
+                  (map_seq (idx + 1) (u, uidx) count)
+              end
         in
-          DS.fromArraySeq (AS.full m)
+          map_seq lo (ui ulo, ulo) 0
         end
+      val counts = SeqBasis.tabulate 1 (0, numBlocks) map_block
+      val outOff = SeqBasis.scan 10000 op+ 0 (0, numBlocks) (fn i => Array.sub (counts, i))
+      val outSize = Array.sub (outOff, numBlocks)
+      val result = ForkJoin.alloc outSize
     in
-      DS.toArraySeq (DS.flatten (DS.map app_vertex (DS.fromArraySeq vertices)))
+      ForkJoin.parfor (totalOutDegree div (Int.max (outSize, 1))) (0, numBlocks) (fn i =>
+      let
+        val soff = i * k
+        val doff = Array.sub (outOff, i)
+        val size = Array.sub (outOff, i+1) - doff
+      in
+        Util.for (0, size) (fn j =>
+          Array.update (result, doff+j, Array.sub (store, soff+j)))
+      end);
+      (AS.full result)
     end
 
-  fun edge_map g V f h =
-    if should_process_sparse g V then
-      edge_map_sparse g V f h
-    else
-      edge_map_dense g V f h
-
-  fun contract clusters g =
-    let
-      val n = G.numVertices g
-      val vertices = Seq.tabulate (fn u => u) n
-      val has_neighbor = Seq.tabulate (fn i => 0) n
-
-      fun upd (u, v) =
+  fun edge_map g (vs, threshold) (fpar, f) h =
+    case vs of
+      SPARSE s =>
+          from_sparse_rep (edge_map_sparse g s fpar h) threshold (G.numVertices g)
+    | DENSE s =>
         let
-          val (cu, cv) = ((Seq.nth clusters u), (Seq.nth clusters v))
+          val (res, count) = edge_map_dense g s f h
         in
-          if cu = cv then NONE
-          else (AS.update (has_neighbor, cu, 1); SOME (cu, cv))
+          from_dense_rep res (SOME count) threshold
         end
-      val sorted_edges = G.dedupEdges (edge_map g vertices upd (fn _ => true))
-      val (vmap, num_taken) = Seq.scan Int.+ 0 has_neighbor
-      val new_sorted_edges = Seq.map (fn (x, y) => (Seq.nth vmap x, Seq.nth vmap y)) sorted_edges
 
-      fun new_label c =
+  fun vertex_foreach g (vs, threshold) f =
+    case vs of
+      SPARSE s =>
+        Seq.foreach s (fn (i, u) => f u)
+    | DENSE s =>
+        Seq.foreach s (fn (i, b) => if (b = 1) then (f i) else ())
+
+  fun vertex_map_ g (vs, threshold) f =
+    case vs of
+      SPARSE s =>
         let
-          val is_taken = (Seq.nth has_neighbor c) = 1
-          val num_taken_left = Seq.nth vmap c
+          val s' =
+            AS.full (SeqBasis.tabFilter 1000 (0, Seq.length s)
+              (fn i =>
+                let
+                  val u = Seq.nth s i
+                  val b = f u
+                in
+                  if b then SOME u
+                  else NONE
+                end
+              ))
         in
-          if is_taken then num_taken_left
-          else num_taken + (c - num_taken_left)
+          (from_sparse_rep s' threshold (G.numVertices g))
         end
-    in
-      (G.fromSortedEdges new_sorted_edges, new_label)
-    end
+    | DENSE s =>
+        let
+          val res =
+            Seq.map (fn i => if (Seq.nth s i = 1) andalso f i then 1 else 0) s
+        in
+          from_dense_rep res NONE threshold
+        end
+
+
+  fun vertex_map g vs f needOut =
+    if needOut then vertex_map_ g vs f
+    else (vertex_foreach g vs; vs)
+
 end

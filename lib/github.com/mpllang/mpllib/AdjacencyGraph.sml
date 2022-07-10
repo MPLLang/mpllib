@@ -11,6 +11,80 @@ struct
     val maxVal = toInt (valOf maxInt)
   end
 
+  structure VertexSubset =
+  struct
+    datatype h = SPARSE of Vertex.t Seq.t | DENSE of int Seq.t
+    type t = h * int
+    exception BadRep
+
+    fun empty thresh = (SPARSE (Seq.empty()), thresh)
+
+    fun size (vs, thresh) =
+      case vs of
+        SPARSE s => Seq.length s
+      | DENSE s => Seq.reduce op+ 0 s
+
+    fun plugOnes s positions =
+      (Seq.foreach positions (fn (i, v) => AS.update (s, Vertex.toInt v, 1)))
+
+    fun append (vs, threshold) s n =
+      case vs of
+        SPARSE ss =>
+          if (Seq.length ss) + (Seq.length s) > threshold then
+            let
+              val dense_rep = Seq.tabulate (fn x => 0) n
+              val _ = plugOnes dense_rep ss
+              val _ = plugOnes dense_rep s
+            in
+              (DENSE (dense_rep), threshold)
+            end
+          else (SPARSE(Seq.append (ss, s)), threshold)
+      | DENSE ss => (plugOnes ss s; (DENSE ss, threshold))
+
+    fun sparse_to_dense vs n =
+      case vs of
+        SPARSE s =>
+          let
+            val dense_rep = Seq.tabulate (fn x => 0) n
+            val _ = Seq.foreach s (fn (i, v) => AS.update (dense_rep, Vertex.toInt v, 1))
+          in
+            DENSE (dense_rep)
+          end
+      | DENSE _ => raise BadRep
+
+    fun dense_to_sparse vs =
+      case vs of
+        SPARSE _ => raise BadRep
+      | DENSE s =>
+          let
+            val (offsets, total) = Seq.scan op+ 0 s
+            val sparse = ForkJoin.alloc total
+            val _ = Seq.foreach s (fn (i, v) =>
+              if (v=1) then A.update (sparse, Seq.nth offsets i, Vertex.fromInt i)
+              else if (v = 0) then ()
+              else raise BadRep
+              )
+          in
+            SPARSE (AS.full sparse)
+          end
+
+    fun from_sparse_rep s threshold n =
+      if (Seq.length s) < threshold then (SPARSE (s), threshold)
+      else (sparse_to_dense (SPARSE (s)) n, threshold)
+
+    fun from_dense_rep s countopt threshold =
+      let
+        val count =
+          case countopt of
+            SOME x => x
+          | NONE => Seq.reduce op+ 0 s
+        val d = DENSE(s)
+      in
+        if count < threshold then (dense_to_sparse(d), threshold)
+        else (d, threshold)
+      end
+  end
+
   type vertex = Vertex.t
   fun vertexNth s v = Seq.nth s (Vertex.toInt v)
   fun vToWord v = Word64.fromInt (Vertex.toInt v)

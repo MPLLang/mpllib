@@ -34,6 +34,7 @@ PureSeq.sml
 SampleSort.sml
 CountingSort.sml
 RadixSort.sml
+Shuffle.sml
 
 (* ReadFile.sml *)
 Tokenize.sml
@@ -60,5 +61,7 @@ NewWaveIO.sml
 Signal.sml
 
 MeshToImage.sml
+
+MkGrep.sml
 
 Benchmark.sml

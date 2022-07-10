@@ -46,8 +46,49 @@ sig
   val copyListIntoArray: 'a list -> 'a array -> int -> int
 
   val revMap: ('a -> 'b) -> 'a list -> 'b list
+
+  val intToString: int -> string
 end =
 struct
+
+  fun ceilDiv n k = 1 + (n-1) div k
+
+  fun digitToChar d = Char.chr (d + 48)
+
+  fun intToString x =
+    let
+      (** For binary precision p, number of decimal digits needed is upper
+        * bounded by:
+        *     1 + log_{10}(2^p) = 1 + p * log_{10}(2)
+        *                      ~= 1 + p * 0.30103
+        *                       < 1 + p * 0.33333
+        *                       = 1 + p / 3
+        * Just for a little extra sanity, we'll do ceiling-div.
+        *)
+      val maxNumChars = 1 + ceilDiv (valOf Int.precision) 3
+      val buf = ForkJoin.alloc maxNumChars
+
+      val orig = x
+
+      fun loop q i =
+        let
+          val i = i-1
+          val d = ~(Int.rem (q, 10))
+          val _ = Array.update (buf, i, digitToChar d)
+          val q = Int.quot (q, 10)
+        in
+          if q <> 0 then
+            loop q i
+          else if orig < 0 then
+            (Array.update (buf, i-1, #"~"); i-1)
+          else
+            i
+        end
+
+      val start = loop (if orig < 0 then orig else ~orig) maxNumChars
+    in
+      CharVector.tabulate (maxNumChars-start, fn i => Array.sub (buf, start+i))
+    end
 
   fun die msg =
     ( TextIO.output (TextIO.stdErr, msg ^ "\n")
@@ -74,8 +115,6 @@ struct
 
   fun closeEnough (x, y) =
     Real.abs (x - y) <= 0.000001
-
-  fun ceilDiv n k = 1 + (n-1) div k
 
   (* NOTE: this actually computes 1 + floor(log_2(n)), i.e. the number of
    * bits required to represent n in binary *)

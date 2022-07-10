@@ -36,7 +36,7 @@ Sequences
 * structure [`DelayedSeq`](doc/DelayedSeq.md)
 * structure [`SeqBasis`](doc/SeqBasis.md)
 
-Sorting
+Sorting and Permutations
 * structure [`Merge`](doc/Merge.md)
 * structure [`StableMerge`](doc/StableMerge.md)
 * structure [`StableSort`](doc/StableSort.md)
@@ -44,6 +44,7 @@ Sorting
 * structure [`SampleSort`](doc/SampleSort.md)
 * structure [`CountingSort`](doc/CountingSort.md)
 * structure [`Quicksort`](doc/Quicksort.md)
+* structure [`Shuffle`](doc/Shuffle.md)
 
 Searching
 * structure [`BinarySearch`](doc/BinarySearch.md)
