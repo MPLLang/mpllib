@@ -1,6 +1,24 @@
 # mpllib
-Standard library for the MPL compiler (https://github.com/mpllang/mpl).
-Compatible with the [smlpkg](https://github.com/diku-dk/smlpkg) package manager.
+Official library for the [MPL](https://github.com/mpllang/mpl) compiler
+for Parallel ML. MPL extends Standard ML with support for (nested) fork-join
+parallelism, and has excellent multicore performance. This library contains
+a variety of parallel algorithms, data structures, and utilities, including:
+  * sequences, sets, dictionaries, matrices
+  * sorting, searching, shuffling
+  * text processing (tokenization, string search)
+  * images (`.ppm`, `.gif` formats)
+  * graph processing (CSR and edge list formats)
+  * audio (signal processing and `.wav` format)
+  * computational geometry (nearest neighbors, meshes, triangulation, convex hull)
+  * command-line arguments
+  * benchmarking
+  * and more...
+
+To see these in action, check out the
+[Parallel ML benchmark suite](https://github.com/mpllang/parallel-ml-bench).
+
+This library is compatible with the
+[`smlpkg`](https://github.com/diku-dk/smlpkg) package manager.
 
 ## Usage
 
@@ -44,16 +62,12 @@ Sorting and Permutations
 * structure [`SampleSort`](doc/SampleSort.md)
 * structure [`CountingSort`](doc/CountingSort.md)
 * structure [`Quicksort`](doc/Quicksort.md)
+* structure `RadixSort`
 * structure [`Shuffle`](doc/Shuffle.md)
 
 Searching
 * structure [`BinarySearch`](doc/BinarySearch.md)
 * structure [`FindFirst`](doc/FindFirst.md)
-
-Images
-* structure [`Color`](doc/Color.md)
-* structure [`GIF`](doc/GIF.md)
-* structure [`PPM`](doc/PPM.md)
 
 Graphs
 * functor [`AdjacencyGraph`](doc/AdjacencyGraph.md)
@@ -63,4 +77,23 @@ Geometry
 * structure `Geometry3D`
 * structure [`Topology2D`](doc/Topology2D.md)
 * structure `MeshToImage`
+* structure `NearestNeighbors`
 
+Images
+* structure [`Color`](doc/Color.md)
+* structure [`GIF`](doc/GIF.md)
+* structure [`PPM`](doc/PPM.md)
+
+Audio
+* structure `NewWaveIO`
+* structure `Signal`
+
+Text
+* structure `Tokenize`
+* functor `MkGrep`
+
+Matrices
+* structure `TreeMatrix`
+
+Augmented Maps
+* functor `PAM`
