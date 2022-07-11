@@ -50,6 +50,11 @@ Searching
 * structure [`BinarySearch`](doc/BinarySearch.md)
 * structure [`FindFirst`](doc/FindFirst.md)
 
+Images
+* structure [`Color`](doc/Color.md)
+* structure [`GIF`](doc/GIF.md)
+* structure [`PPM`](doc/PPM.md)
+
 Graphs
 * functor [`AdjacencyGraph`](doc/AdjacencyGraph.md)
 
@@ -58,3 +63,4 @@ Geometry
 * structure `Geometry3D`
 * structure [`Topology2D`](doc/Topology2D.md)
 * structure `MeshToImage`
+
