@@ -18,6 +18,7 @@ STREAM.sml
 DelayedStream.sml
 RecursiveStream.sml
 DelayedSeq.sml
+OldDelayedSeq.sml
 
 FuncSequence.sml
 BinarySearch.sml

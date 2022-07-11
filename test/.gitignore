@@ -1,2 +1,8 @@
 stable-merge
+stable-merge.mlton
+
 stable-sort
+stable-sort.mlton
+
+delayed-seq
+delayed-seq.mlton

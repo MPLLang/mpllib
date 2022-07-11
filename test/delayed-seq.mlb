@@ -1,2 +1,2 @@
 ../lib/github.com/mpllang/mpllib/sources.$(COMP).mlb
-stable-merge.sml
+delayed-seq.sml
