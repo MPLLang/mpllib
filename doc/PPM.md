@@ -5,17 +5,17 @@ Support for the simple `.ppm` image file format.
 ```sml
 type pixel = Color.pixel
 ```
-Colors are defined by the [`Color`](doc/Color.md) module.
+Colors are defined by the [`Color`](Color.md) module.
 
 ```sml
 type image = {height: int, width: int, data: pixel Seq.t}
 ```
-An image is a [`Seq.t`](doc/Seq.md) where the pixel at `(i,j)` is stored
+An image is a [`Seq.t`](Seq.md) where the pixel at `(i,j)` is stored
 at index `i*width + j`. That is, `i` (where `0 <= i < height`) is the row
 index, and `j` (where `0 <= j < width`) is the column index. The top-left of
 the image is at `(0,0)`.
 
-**Note**: this representation is identical to [`GIF.image`](doc/GIF.md), making
+**Note**: this representation is identical to [`GIF.image`](GIF.md), making
 it easy to interface between the two structures.
 
 ```sml
