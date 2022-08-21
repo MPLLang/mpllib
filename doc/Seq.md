@@ -124,6 +124,14 @@ Linear work and span.
 
 
 ```sml
+val fromRevList: 'a list -> 'a seq
+```
+
+Reverse a list and convert it into a sequence.
+Linear work and span.
+
+
+```sml
 val toList: 'a seq -> 'a list
 ```
 

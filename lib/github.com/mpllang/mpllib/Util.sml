@@ -43,11 +43,17 @@ sig
    * for lo <= i < hi, iteratively do  b = f (b, i)  *)
   val loop: (int * int) -> 'a -> ('a * int -> 'a) -> 'a
 
+  val all: (int * int) -> (int -> bool) -> bool
+  val exists: (int * int) -> (int -> bool) -> bool
+
   val copyListIntoArray: 'a list -> 'a array -> int -> int
 
   val revMap: ('a -> 'b) -> 'a list -> 'b list
 
   val intToString: int -> string
+
+  val equalLists: ('a * 'a -> bool) -> 'a list * 'a list -> bool
+
 end =
 struct
 
@@ -137,6 +143,22 @@ struct
   fun foreach s f =
     ForkJoin.parfor 4096 (0, ArraySlice.length s)
     (fn i => f (i, ArraySlice.sub (s, i)))
+
+  fun all (lo, hi) f =
+    let
+      fun allFrom i =
+        (i >= hi) orelse (f i andalso allFrom (i+1))
+    in
+      allFrom lo
+    end
+
+  fun exists (lo, hi) f =
+    let
+      fun existsFrom i =
+        i < hi andalso (f i orelse existsFrom (i+1))
+    in
+      existsFrom lo
+    end
 
   fun copyListIntoArray xs arr i =
     case xs of
@@ -322,5 +344,11 @@ struct
         in
           toInt v
         end)
+
+
+  fun equalLists eq ([], []) = true
+    | equalLists eq (x :: xs, y :: ys) =
+        eq (x, y) andalso equalLists eq (xs, ys)
+    | equalLists _ _ = false
 
 end

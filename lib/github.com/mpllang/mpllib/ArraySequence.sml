@@ -98,6 +98,10 @@ struct
     tabulate (fn i => nth s (length s - 1 - i)) (length s)
 
 
+  (** TODO: make faster *)
+  fun fromRevList list = rev (fromList list)
+
+
   fun append (s, t) =
     let
       val (ns, nt) = (length s, length t)
@@ -133,16 +137,16 @@ struct
 
 
   fun iteratePrefixes f b s =
-    let 
+    let
       val prefixes = alloc (length s)
-      fun g ((i, b), a) = 
-        let 
+      fun g ((i, b), a) =
+        let
           val _ = A.update (prefixes, i, b)
         in
           (i+1, f (b, a))
         end
       val (_, r) = iterate g (0, b) s
-    in 
+    in
         (AS.full prefixes, r)
     end
 
@@ -173,7 +177,7 @@ struct
     (* Assumes that the predicate p is pure *)
     AS.full (SeqBasis.filter GRAN (0, length s) (nth s) (p o nth s))
 
-  fun filterSafe p s = 
+  fun filterSafe p s =
     (* Does not assume that the predicate p is pure *)
     AS.full (SeqBasis.tabFilter GRAN (0, length s) (fn i => if p (nth s i) then SOME (nth s i) else NONE))
 

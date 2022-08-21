@@ -25,6 +25,17 @@ For reals, this uses `Real.fromString`.
 
 For bools, the value must be either `true` or `false`.
 
+
+```sml
+val parseStrings: string -> string list
+```
+
+`parseStrings key` looks for every `-<key> <value>`  in the command-line
+arguments and returns a list all such `<value>` found.
+
+For example, if `-arg a -arg b -arg c -arg d` is passed at the command line,
+then `parseStrings "arg"` returns `["a", "b", "c", "d"]`.
+
 ```sml
 val parseFlag: string -> bool
 ```
