@@ -6,3 +6,6 @@ stable-sort.mlton
 
 delayed-seq
 delayed-seq.mlton
+
+chunk-treap
+chunk-treap.mlton

@@ -2,9 +2,11 @@ MPL=mpl
 MLTON=mlton -codegen c
 FLAGS=-default-type int64 -default-type word64
 
-TESTS=stable-merge stable-sort delayed-seq
+TESTS=stable-merge stable-sort delayed-seq chunk-treap
 
 MLTON_TESTS := $(addsuffix .mlton,$(TESTS))
+
+all: $(TESTS) $(MLTON_TESTS)
 
 $(MLTON_TESTS): %.mlton: phony
 	$(MLTON) $(FLAGS) -mlb-path-var 'COMP mlton' -output $@ $*.mlb

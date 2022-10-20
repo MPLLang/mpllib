@@ -65,4 +65,10 @@ MeshToImage.sml
 
 MkGrep.sml
 
+Hashset.sml
+Hashtable.sml
+
+ParFuncArray.sml
+ChunkedTreap.sml
+
 Benchmark.sml

@@ -3,7 +3,7 @@ Official library for the [MPL](https://github.com/mpllang/mpl) compiler
 for Parallel ML. MPL extends Standard ML with support for (nested) fork-join
 parallelism, and has excellent multicore performance. This library contains
 a variety of parallel algorithms, data structures, and utilities, including:
-  * sequences, sets, dictionaries, matrices
+  * sequences, sets, dictionaries, matrices, concurrent collections
   * sorting, searching, shuffling
   * text processing (tokenization, string search)
   * images (`.ppm`, `.gif` formats)
@@ -97,3 +97,9 @@ Matrices
 
 Augmented Maps
 * functor `PAM`
+
+Collections
+* structure `Hashset`
+* structure `Hashtable`
+* functor `ChunkedTreap`
+* structure `ParFuncArray`

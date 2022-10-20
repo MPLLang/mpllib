@@ -6,6 +6,11 @@ struct
   structure AS = ArraySlice
   open G.VertexSubset
 
+  fun to_seq g (vs, threshold) =
+    case vs of
+      SPARSE s => s
+    | DENSE s => to_seq g (G.VertexSubset.dense_to_sparse vs, threshold)
+
   fun should_process_sparse g n  =
     let
       val denseThreshold = G.numEdges g div 20
