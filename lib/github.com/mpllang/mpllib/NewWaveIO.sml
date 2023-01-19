@@ -21,7 +21,7 @@ struct
   fun err msg =
     raise Fail ("NewWaveIO: " ^ msg)
 
-  fun compress boost (snd as {sr, data}: sound) =
+  fun compress boost ({sr, data}: sound) =
     if boost < 1.0 then
       err "Compression boost parameter must be at least 1"
     else
@@ -137,10 +137,8 @@ struct
       val sampleRate = Word32.toInt (Parse.r32l bytes offset)
 
       val offset = offset+4
-      val byteRate = Word32.toInt (Parse.r32l bytes offset)
 
       val offset = offset+4
-      val blockAlign = Word16.toInt (Parse.r16l bytes offset)
 
       val offset = offset+2
       val bitsPerSample = Word16.toInt (Parse.r16l bytes offset)
@@ -164,7 +162,7 @@ struct
       val dataSize = Word32.toInt (Parse.r32l bytes offset)
       val _ =
         if dataChunkStart + 8 + dataSize <= totalFileSize then ()
-        else err ("badly formatted data chunk: unexpected end-of-file")
+        else err "badly formatted data chunk: unexpected end-of-file"
 
       val dataStart = dataChunkStart + 8
 

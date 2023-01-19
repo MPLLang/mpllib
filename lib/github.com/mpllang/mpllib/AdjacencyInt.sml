@@ -9,7 +9,7 @@ struct
   fun to_seq g (vs, threshold) =
     case vs of
       SPARSE s => s
-    | DENSE s => to_seq g (G.VertexSubset.dense_to_sparse vs, threshold)
+    | DENSE _ => to_seq g (G.VertexSubset.dense_to_sparse vs, threshold)
 
   fun should_process_sparse g n  =
     let
@@ -66,7 +66,7 @@ struct
           val hi = Int.min((i+1)*k, totalOutDegree)
           val ulo =
             let
-              val a = BinarySearch.search (Int.compare) offsets lo
+              val a = BinarySearch.search Int.compare offsets lo
             in
               if (Seq.nth offsets a) > lo then a - 1
               else a
@@ -116,10 +116,10 @@ struct
           from_dense_rep res (SOME count) threshold
         end
 
-  fun vertex_foreach g (vs, threshold) f =
+  fun vertex_foreach _ (vs, _) f =
     case vs of
       SPARSE s =>
-        Seq.foreach s (fn (i, u) => f u)
+        Seq.foreach s (fn (_, u) => f u)
     | DENSE s =>
         Seq.foreach s (fn (i, b) => if (b = 1) then (f i) else ())
 

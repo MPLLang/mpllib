@@ -119,12 +119,11 @@ struct
       val height = intTok "height" 2
       val resolution = intTok "max color value" 3
 
-      val numPixels = width * height
       val numChannels = 3 * width * height
 
       val _ =
         if numToks = numChannels + 4 then ()
-        else raise Fail ("error parsing .ppm file: too few color channels")
+        else raise Fail "error parsing .ppm file: too few color channels"
 
       fun normalize (c : int) =
         Real.ceil ((Real.fromInt c / Real.fromInt resolution) * 255.0)

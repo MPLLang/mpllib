@@ -127,13 +127,12 @@ struct
               quicksort' s1 digit lo (lo + mid1) seed1;
               quicksort' s2 (digit + 1) (lo + mid1) (lo + mid2) seed2;
               quicksort' s3 digit (lo + mid2) hi seed3
-            ) else (
+            ) else
               let val ((), (), ()) = par3 (
                 fn () => quicksort' s1 digit lo (lo + mid1) seed1,
                 fn () => quicksort' s2 (digit + 1) (lo + mid1) (lo + mid2) seed2,
                 fn () => quicksort' s3 digit (lo + mid2) hi seed3
               ) in () end
-            )
           in
             ()
           end

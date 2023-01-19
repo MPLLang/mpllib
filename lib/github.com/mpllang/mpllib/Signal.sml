@@ -176,7 +176,7 @@ struct
       Seq.tabulate output (Seq.length data)
     end
 
-  fun allPass ds a (snd as {sr, data}: sound) =
+  fun allPass ds a ({sr, data}: sound) =
     let
       (* convert to samples *)
       val D = Real.round (ds * Real.fromInt sr)

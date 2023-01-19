@@ -29,7 +29,7 @@ struct
 
   fun sidelength mat =
     case mat of
-      Leaf (n, s) => n
+      Leaf (n, _) => n
     | Node (n, _, _, _, _) => n
 
   fun tabulate sidelen f =
@@ -121,7 +121,7 @@ struct
   fun multiply' (a, b, c) =
     case (a, b, c) of
       (Leaf (n, s), Leaf (_, t), Leaf (_, c)) => flatmultiply n (s, t, c)
-    | (Node (n, a11, a12, a21, a22),
+    | (Node (_, a11, a12, a21, a22),
        Node (_, b11, b12, b21, b22),
        Node (_, c11, c12, c21, c22)) =>
         let

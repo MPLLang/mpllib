@@ -221,14 +221,14 @@ struct
     end
 
 
-  fun vertex (vertices as (a,b,c)) i =
+  fun vertex (a,b,c) i =
     case i of
       0 => a
     | 1 => b
     | _ => c
 
 
-  fun neighbor (neighbors as (a,b,c)) i =
+  fun neighbor (a,b,c) i =
     let
       val t' =
         case i of
@@ -240,14 +240,14 @@ struct
     end
 
 
-  fun locate (neighbors as (a,b,c)) (t: triangle) =
+  fun locate (a,b,c) (t: triangle) =
     if a = t then SOME 0
     else if b = t then SOME 1
     else if c = t then SOME 2
     else NONE
 
 
-  fun hasEdge (vertices as (a,b,c)) (u,v) =
+  fun hasEdge (a,b,c) (u,v) =
     (u = a orelse u = b orelse u = c)
     andalso
     (v = a orelse v = b orelse v = c)
@@ -317,13 +317,13 @@ struct
     | NONE => NONE
 
 
-  fun fastNeighbor (neighbors as (a,b,c)) i =
+  fun fastNeighbor (a,b,c) i =
     case i of
       0 => a
     | 1 => b
     | _ => c
 
-  fun fastLocate (neighbors as (a,b,c)) (t: triangle) =
+  fun fastLocate (a,b,_) (t: triangle) =
     if a = t then 0
     else if b = t then 1
     else 2
@@ -633,7 +633,7 @@ struct
     let
       val Tri {vertices=(v1,v2,v3), neighbors=(t1,t2,t3)} =
         orientedTriangleData mesh simp
-      val Tri {vertices=(v3_,v4,v1_), neighbors=(t,t4,t5)} =
+      val Tri {vertices=(_,v4,_), neighbors=(t,t4,t5)} =
         orientedTriangleData mesh (fastAcross mesh simp)
 
       (* val _ =
@@ -795,7 +795,7 @@ struct
     in
       ForkJoin.parfor 100 (0, Seq.length cavities) (fn i =>
         let
-          val (cavity as (center, simps), pt) = nth cavities i
+          val ((center, simps), pt) = nth cavities i
           val ta0 = numTriangles + 2*i
           val ta1 = ta0 + 1
         in
@@ -928,11 +928,11 @@ struct
 
       val _ =
         if numLines >= 3 then ()
-        else raise Fail ("Topology2D: read mesh: missing or incomplete header")
+        else raise Fail "Topology2D: read mesh: missing or incomplete header"
 
       val _ =
         if Parse.parseString (line 0) = "Mesh" then ()
-        else raise Fail ("expected Mesh header")
+        else raise Fail "expected Mesh header"
 
       fun tryParse parser test thing lineNum =
         let
@@ -949,9 +949,6 @@ struct
 
       fun tryParseInt thing lineNum =
         tryParse Parse.parseInt (fn x => x >= 0) thing lineNum
-      fun tryParseReal thing lineNum =
-        tryParse Parse.parseReal (fn x => true) thing lineNum
-
 
       val numVertices = tryParseInt "num vertices" 1
       val numTriangles = tryParseInt "num triangles" 2
@@ -997,7 +994,7 @@ struct
             ((*print ("nbr " ^ Int.toString i ^ " start " ^ Int.toString (nbrStart i) ^ " end " ^ Int.toString (nbrEnd i) ^ "\n");
              print ("nbrstring: \"" ^ Parse.parseString (ss restOfLine (nbrStart i, nbrEnd i)) ^ "\"\n");*)
             valOf (Parse.parseInt (ss restOfLine (nbrStart i, nbrEnd i)))
-            handle Option => raise Fail ("bad neighbor"))
+            handle Option => raise Fail "bad neighbor")
         in
           (nbr 0, nbr 1, nbr 2)
         end
@@ -1032,7 +1029,7 @@ struct
 
       val _ =
         if numLines >= numVertices + numTriangles + 3 then ()
-        else raise Fail ("Topology2D: not enough vertices and/or triangles to parse")
+        else raise Fail "Topology2D: not enough vertices and/or triangles to parse"
 
       val vertices = AS.full (SeqBasis.tabulate 1000 (0, numVertices)
         (fn i => tryParseVertex (3+i)))

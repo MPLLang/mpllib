@@ -165,7 +165,7 @@ struct
 
       fun p i =
         Option.valOf (parseInt (tok (1 + i)))
-        handle e => raise Fail ("error parsing integer " ^ Int.toString i)
+        handle _ => raise Fail ("error parsing integer " ^ Int.toString i)
     in
       Seq.tabulate p n
     end
@@ -182,7 +182,7 @@ struct
 
       fun p i =
         Option.valOf (parseReal (tok (1 + i)))
-        handle e => raise Fail ("error parsing double value " ^ Int.toString i)
+        handle _ => raise Fail ("error parsing double value " ^ Int.toString i)
     in
       Seq.tabulate p n
     end

@@ -54,7 +54,7 @@ struct
   fun report () =
     let
     in
-      print ("======== GC Stats ========\n");
+      print "======== GC Stats ========\n";
       print "none yet...\n"
     end
 

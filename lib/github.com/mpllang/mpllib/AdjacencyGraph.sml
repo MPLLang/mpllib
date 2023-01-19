@@ -19,24 +19,24 @@ struct
 
     fun empty thresh = (SPARSE (Seq.empty()), thresh)
 
-    fun size (vs, thresh) =
+    fun size (vs, _) =
       case vs of
         SPARSE s => Seq.length s
       | DENSE s => Seq.reduce op+ 0 s
 
     fun plugOnes s positions =
-      (Seq.foreach positions (fn (i, v) => AS.update (s, Vertex.toInt v, 1)))
+      (Seq.foreach positions (fn (_, v) => AS.update (s, Vertex.toInt v, 1)))
 
     fun append (vs, threshold) s n =
       case vs of
         SPARSE ss =>
           if (Seq.length ss) + (Seq.length s) > threshold then
             let
-              val dense_rep = Seq.tabulate (fn x => 0) n
+              val dense_rep = Seq.tabulate (fn _ => 0) n
               val _ = plugOnes dense_rep ss
               val _ = plugOnes dense_rep s
             in
-              (DENSE (dense_rep), threshold)
+              (DENSE dense_rep, threshold)
             end
           else (SPARSE(Seq.append (ss, s)), threshold)
       | DENSE ss => (plugOnes ss s; (DENSE ss, threshold))
@@ -45,10 +45,10 @@ struct
       case vs of
         SPARSE s =>
           let
-            val dense_rep = Seq.tabulate (fn x => 0) n
-            val _ = Seq.foreach s (fn (i, v) => AS.update (dense_rep, Vertex.toInt v, 1))
+            val dense_rep = Seq.tabulate (fn _ => 0) n
+            val _ = Seq.foreach s (fn (_, v) => AS.update (dense_rep, Vertex.toInt v, 1))
           in
-            DENSE (dense_rep)
+            DENSE dense_rep
           end
       | DENSE _ => raise BadRep
 
@@ -69,8 +69,8 @@ struct
           end
 
     fun from_sparse_rep s threshold n =
-      if (Seq.length s) < threshold then (SPARSE (s), threshold)
-      else (sparse_to_dense (SPARSE (s)) n, threshold)
+      if (Seq.length s) < threshold then (SPARSE s, threshold)
+      else (sparse_to_dense (SPARSE s) n, threshold)
 
     fun from_dense_rep s countopt threshold =
       let
@@ -78,9 +78,9 @@ struct
           case countopt of
             SOME x => x
           | NONE => Seq.reduce op+ 0 s
-        val d = DENSE(s)
+        val d = DENSE s
       in
-        if count < threshold then (dense_to_sparse(d), threshold)
+        if count < threshold then (dense_to_sparse d, threshold)
         else (d, threshold)
       end
   end
@@ -93,7 +93,7 @@ struct
   type graph = (int Seq.t) * (int Seq.t) * (vertex Seq.t)
 
   fun degree G v =
-    let val (offsets, degrees, _) = G
+    let val (_, degrees, _) = G
     in (vertexNth degrees v)
     end
 
@@ -145,11 +145,11 @@ struct
 
       val _ =
         if numLines >= 3 then ()
-        else raise Fail ("AdjacencyGraph: missing or incomplete header")
+        else raise Fail "AdjacencyGraph: missing or incomplete header"
 
       val _ =
         if Parse.parseString (line 0) = "AdjacencyGraph" then ()
-        else raise Fail ("expected AdjacencyGraph header")
+        else raise Fail "expected AdjacencyGraph header"
 
       fun tryParse thing lineNum =
         let
@@ -168,7 +168,7 @@ struct
 
       val _ =
         if numLines >= numVertices + numEdges + 3 then ()
-        else raise Fail ("AdjacencyGraph: not enough offsets and/or edges to parse")
+        else raise Fail "AdjacencyGraph: not enough offsets and/or edges to parse"
 
       val offsets = AS.full (SeqBasis.tabulate 1000 (0, numVertices)
         (fn i => tryParse "edge offset" (3+i)))
@@ -219,13 +219,13 @@ struct
       val header = "AdjacencyGraphBin\n"
       val header' =
         if Seq.length bytes < String.size header then
-          raise Fail ("AdjacencyGraphBin: missing or incomplete header")
+          raise Fail "AdjacencyGraphBin: missing or incomplete header"
         else
           CharVector.tabulate (String.size header, fn i =>
             Char.chr (Word8.toInt (Seq.nth bytes i)))
       val _ =
         if header = header' then ()
-        else raise Fail ("expected AdjacencyGraphBin header")
+        else raise Fail "expected AdjacencyGraphBin header"
 
       val bytes = Seq.drop bytes (String.size header)
 
@@ -302,7 +302,6 @@ struct
    * edge parity 0 are symmetrized!) *)
   fun parityCheck g =
     let
-      val (offsets, _, _) = g
       val n = numVertices g
 
       fun canonical (u, v) =
@@ -314,7 +313,6 @@ struct
       val (p1, p2) = SeqBasis.reduce 100 xorEdges (0w0, 0w0) (0, n) (fn i =>
         let
           val u = Vertex.fromInt i
-          val offset = Seq.nth offsets i
         in
           SeqBasis.reduce 1000 xorEdges (0w0, 0w0) (0, degree g u) (fn j =>
             packEdge (canonical (u, Seq.nth (neighbors g u) j)))

@@ -50,12 +50,7 @@ struct
       val width = resolution
       val height = resolution
 
-      val niceGray = Color.hsva {h=0.0, s=0.0, v=0.88, a=1.0}
-      (* val white = Color.hsva {h=0.0, s=0.0, v=1.0, a=1.0} *)
       val black = Color.hsva {h=0.0, s=0.0, v=0.0, a=1.0}
-      val red = Color.hsva {h=0.0, s=1.0, v=1.0, a=1.0}
-
-      val niceRed = Color.hsva {h = 0.0, s = 0.55, v = 0.95, a = 0.55}
       val niceBlue = Color.hsva {h = 240.0, s = 0.55, v = 0.95, a = 0.55}
 
       fun alphaGray a =
@@ -163,8 +158,8 @@ struct
           val (p0, p1, p2) = (adjust p0, adjust p1, adjust p2)
 
           (** min and max corners of bounding box *)
-          val (xlo, ylo) = List.foldl G.Point.minCoords p0 [p1, p2]
-          val (xhi, yhi) = List.foldl G.Point.maxCoords p0 [p1, p2]
+          val (_, ylo) = List.foldl G.Point.minCoords p0 [p1, p2]
+          val (_, yhi) = List.foldl G.Point.maxCoords p0 [p1, p2]
 
           fun horizontalIntersect y =
             let
@@ -233,9 +228,9 @@ struct
 
           val perimeter =
             List.map (T.vdata mesh)
-            ((let val (u,v,w) = T.verticesOfTriangle mesh center
+            (let val (u,v,w) = T.verticesOfTriangle mesh center
             in [u,v,w]
-            end)
+            end
             @
             (List.map (fn s => T.firstVertex mesh (T.rotateClockwise s)) simps))
 

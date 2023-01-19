@@ -54,7 +54,7 @@ struct
   fun transpose(S, num_rows, num_cols) =
     let
       val seq_threshold = 8000
-      val (SS, offset, n) = AS.base S
+      val (SS, offset, _) = AS.base S
       val _ = if (AS.length S) <> (num_rows * num_cols) then raise Size else ()
       val R = ForkJoin.alloc (num_rows * num_cols)
       fun baseCase(row_start, row_len, col_start, col_len) =
@@ -62,11 +62,11 @@ struct
             for_l (col_start, col_len) (fn j =>
                update(R, j * num_rows + i, sub(SS,(i*num_cols + j + offset)))))
     in (matrixDandC baseCase (seq_threshold, num_rows, num_cols);
-        AS.full(R))
+        AS.full R)
     end
 
   (* transposes a matrix of blocks given source and destination pairs *)
-  fun transposeBlocks(S, source_offsets, dest_offsets, counts, num_rows, num_cols, n) =
+  fun transposeBlocks(S, source_offsets, dest_offsets, counts, num_rows, num_cols, _) =
     let
       val seq_threshold = 500
       val (SS, offset, n) = AS.base S
@@ -79,7 +79,7 @@ struct
                    val l = Seq.nth counts (i*num_cols + j)
                  in for (0,l) (fn k => update(R,pb+k,sub(SS, pa + k))) end))
     in (matrixDandC baseCase (seq_threshold, num_rows, num_cols);
-        AS.full(R))
+        AS.full R)
     end
 
   (* merges a sequence of elements A with the samples S, putting counts in C *)
@@ -90,10 +90,10 @@ struct
       fun merge(i,j) =
         if (j = num_samples) then AS.update(C,j,n-i)
         else
-          let fun merge'(i) = if (i < n andalso cmp(AS.sub (A, i), AS.sub (S, j)) = LESS)
+          let fun merge' i = if (i < n andalso cmp(AS.sub (A, i), AS.sub (S, j)) = LESS)
                               then merge'(i+1)
                               else i
-              val k = merge'(i)
+              val k = merge' i
               val _ = AS.update(C, j, k-i)
           in merge(k,j+1) end
   in merge(0,0) end
@@ -192,4 +192,3 @@ struct
 
    in C end
 end
-

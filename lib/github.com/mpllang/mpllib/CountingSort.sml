@@ -50,7 +50,7 @@ struct
 
       for (0, n) (fn i =>
         let
-          val j = Keys(i)
+          val j = Keys i
           val k = sub(Counts, j)
         in
           update(Counts, j, k+1);
@@ -87,26 +87,25 @@ struct
       val n = AS.length In
       (* pad to avoid false sharing *)
       val numBucketsPad = Int.max(numBuckets, 16)
-      val sqrt = Real.floor(Math.sqrt(Real.fromInt n))
       val numBlocks = n div (numBuckets * BlockFactor)
     in
       if (numBlocks <= 1 orelse n < SeqThreshold) then
         seqSort(In, Keys, numBuckets)
       else let
-        val blockSize = ((n-1) div numBlocks) + 1;
+        val blockSize = ((n-1) div numBlocks) + 1
         val m = numBlocks * numBucketsPad
         val B = AS.full(ForkJoin.alloc(AS.length In))
-        val Counts = AS.full(ForkJoin.alloc(m))
+        val Counts = AS.full(ForkJoin.alloc m)
         val _ = ForkJoin.parfor 1 (0, numBlocks) (fn i =>
           let
             val start = Int.min(i * blockSize, n)
             val len = Int.min((i+1)* blockSize, n) - start
           in
             seqSortInternal
-              (AS.subslice(In, start, SOME(len)))
-              (AS.subslice(B, start, SOME(len)))
+              (AS.subslice(In, start, SOME len))
+              (AS.subslice(B, start, SOME len))
               (fn i => Keys(i+start))
-              (AS.subslice(Counts,i*numBucketsPad,SOME(numBucketsPad)))
+              (AS.subslice(Counts,i*numBucketsPad,SOME numBucketsPad))
               false;
             ()
           end)

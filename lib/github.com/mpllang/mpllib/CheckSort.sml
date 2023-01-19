@@ -36,16 +36,9 @@ struct
     let
       val n = Seq.length input
       val input' = Seq.mapIdx (fn (i, x) => (i, x)) input
-      fun compare' ((i1, k1), (i2, k2)) = compare (k1, k2)
+      fun compare' ((_, k1), (_, k2)) = compare (k1, k2)
 
       val result = sort_func compare' input'
-
-      val noElemsMissing: bool =
-        DS.reduce (fn (a, b) => a andalso b) true
-          (DS.inject
-            ( DS.tabulate (fn _ => false) n
-            , DS.map (fn (i, k) => (i, true)) (DS.fromArraySeq result)
-            ))
 
       fun adjacentPairProblem ((i1, k1), (i2, k2)) =
         case compare (k1, k2) of

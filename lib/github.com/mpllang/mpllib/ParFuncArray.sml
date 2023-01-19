@@ -100,7 +100,7 @@ struct
             i
             *)
       in
-        if #1 ((*valOf*) (Array.sub (data, n-1))) < v then NONE else
+        if #1 (*valOf*) (Array.sub (data, n-1)) < v then NONE else
         let
           val slice = ArraySlice.slice (data, 0, SOME n)
           val idx =
@@ -109,7 +109,7 @@ struct
                 (* | NONE => raise Fail "ParFuncArray.getVersion found empty slot" *)
               )
         in
-          SOME (#2 ((*valOf*) (Array.sub (data, idx))))
+          SOME (#2 (*valOf*) (Array.sub (data, idx)))
         end
       end
       handle e => (print ("error during getVersion: " ^ exnMessage e ^ "\n"); raise e)
@@ -211,7 +211,6 @@ struct
     in
       ForkJoin.parfor 1000 (0, n) (fn i =>
         let
-          val x = f i
         in
           Array.update (data, i, f i)
           (* updateLog (logs, i) (version, x) *)

@@ -202,7 +202,7 @@ struct
               val outerIdx = ref firstOuterIdx
             in
               fn idx =>
-                (let
+                let
                   val i = !outerIdx
                   val j = lo + idx - offset i
                   (* val j = !innerIdx *)
@@ -213,7 +213,7 @@ struct
                   else
                     outerIdx := advanceUntilNonEmpty (i+1);
                   elem
-                end)
+                end
             end
         end
 

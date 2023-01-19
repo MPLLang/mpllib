@@ -103,7 +103,7 @@ struct
           case j - i of
             0 => b
           | 1 => foldl g b (lo + i*k, Int.min (lo + (i+1)*k, hi)) f
-          | n => let val mid = i + (j-i) div 2
+          | _ => let val mid = i + (j-i) div 2
                  in g (par (fn _ => red i mid, fn _ => red mid j))
                  end
       in

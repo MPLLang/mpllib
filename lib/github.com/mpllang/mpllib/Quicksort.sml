@@ -59,15 +59,15 @@ struct
 
       (* puts lesser pivot at start and larger at end *)
       fun twoPivots(a, n) =
-        let fun sortToFront(size) =
+        let fun sortToFront size =
               let val m = n div (size + 1)
-                  fun toFront(i) =
+                  fun toFront i =
                     if (i < size) then (swap(a + i, a + m*(i+1)); toFront(i+1))
                     else ()
-              in (toFront(0); insertSort(a,size)) end
+              in (toFront 0; insertSort(a,size)) end
         in if (n < 80) then
                (if cmp(a, a+n-1) = GREATER then swap(a,a+n-1) else ())
-           else (sortToFront(5); swap(a+1,a); swap(a+3,a+n-1))
+           else (sortToFront 5; swap(a+1,a); swap(a+3,a+n-1))
         end
 
       (* splits based on two pivots (p1 and p2) into 3 parts:
@@ -78,7 +78,7 @@ struct
       fun split3 (a, n) =
         let
             val (p1,p2) = (twoPivots(a,n); (a, a+n-1))
-            fun right(r) = if cmp(r, p2) = GREATER then right(r-1) else r
+            fun right r = if cmp(r, p2) = GREATER then right(r-1) else r
             fun loop(l,m,r) =
               if (m > r) then (l,m)
               else if cmp(m, p1) = LESS then (swap(m,l); loop(l+1, m+1, r))

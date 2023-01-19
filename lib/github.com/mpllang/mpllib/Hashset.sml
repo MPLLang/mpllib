@@ -48,10 +48,9 @@ datatype 'a t =
 
   fun capacity (S {data, ...}) = Array.length data
 
-  fun insert' (input as S {data, hash, eq, maxload}) x force =
+  fun insert' (S {data, hash, eq, maxload}) x force =
     let
       val n = Array.length data
-      val start = (hash x) mod (Array.length data)
 
       val tolerance =
         2 * Real.ceil (1.0 / (1.0 - maxload))
@@ -66,13 +65,8 @@ datatype 'a t =
           val current = Array.sub (data, i)
         in
           case current of
-            SOME y => if eq (x, y) then false else loop (i+1) (probes+1)
-          | NONE =>
-              if bcas (data, i) (current, SOME x) then
-                (* (Concurrency.faa sz 1; true) *)
-                true
-              else
-                loop i probes
+            SOME y =>  not (eq (x, y)) andalso loop (i+1) (probes+1)
+          | NONE => bcas (data, i) (current, SOME x) (* (Concurrency.faa sz 1; true) *) orelse loop i probes
         end
 
       val start = (hash x) mod (Array.length data)
@@ -98,7 +92,7 @@ datatype 'a t =
     end
 
 
-  fun to_list (S {data, hash, eq, ...}) =
+  fun to_list (S {data, ...}) =
     let
       fun pushSome (elem, xs) =
         case elem of

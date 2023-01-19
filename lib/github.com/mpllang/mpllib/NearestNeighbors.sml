@@ -131,7 +131,7 @@ struct
       val qw = width/2.0 (* quadrant width *)
       val center = (xLeft + qw, yBot + qw)
 
-      val ((sorted, offsets), tm) = Util.getTime (fn () =>
+      val ((sorted, offsets), _) = Util.getTime (fn () =>
         CountingSort.sort idx (fn i =>
           G.quadrant center (Seq.nth verts (Seq.nth idx i))) 4)
 

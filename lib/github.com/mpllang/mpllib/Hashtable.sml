@@ -73,7 +73,7 @@ struct
     end
 
 
-  fun to_list (S {data, hash, eq}) =
+  fun to_list (S {data, ...}) =
     let
       fun pushSome (elem, xs) =
         case elem of

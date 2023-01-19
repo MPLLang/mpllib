@@ -276,7 +276,7 @@ struct
 
   fun subseq s (i, k) =
     case s of
-      Flat (Delay (start, stop, f)) => Flat (Delay (start+i, start+i+k, f))
+      Flat (Delay (start, _, f)) => Flat (Delay (start+i, start+i+k, f))
     | Flat (Full slice) => Flat (Full (AS.subslice (slice, i, SOME k)))
     | _ => raise Fail "delay subseq (Nest) not implemented yet"
 
@@ -285,7 +285,7 @@ struct
     case s of
       Full slice =>
         AS.nth slice k
-    | Delay (i, j, f) =>
+    | Delay (i, _, f) =>
         f (i+k)
 
 
@@ -301,7 +301,7 @@ struct
     case s of
       Full slice =>
         AS.length slice
-    | Delay (i, j, f) =>
+    | Delay (i, j, _) =>
         j-i
 
 
@@ -317,7 +317,7 @@ struct
     case s of
       Full slice =>
         Full (AS.subslice (slice, i, SOME (j-i)))
-    | Delay (start, stop, f) =>
+    | Delay (start, _, f) =>
         Delay (start+i, start+j, f)
 
 
@@ -900,23 +900,23 @@ struct
   type 'a ord = 'a * 'a -> order
   type 'a t = 'a seq
 
-  fun argmax x = raise NYI
-  fun collate x = raise NYI
-  fun collect x = raise NYI
-  fun drop x = raise NYI
-  fun equal x = raise NYI
-  fun iteratePrefixes x = raise NYI
-  fun iteratePrefixesIncl x = raise NYI
-  fun merge x = raise NYI
-  fun sort x = raise NYI
-  fun splitHead x = raise NYI
-  fun splitMid x = raise NYI
-  fun take x = raise NYI
-  fun update x = raise NYI
-  fun zipWith3 x = raise NYI
+  fun argmax _ = raise NYI
+  fun collate _ = raise NYI
+  fun collect _ = raise NYI
+  fun drop _ = raise NYI
+  fun equal _ = raise NYI
+  fun iteratePrefixes _ = raise NYI
+  fun iteratePrefixesIncl _ = raise NYI
+  fun merge _ = raise NYI
+  fun sort _ = raise NYI
+  fun splitHead _ = raise NYI
+  fun splitMid _ = raise NYI
+  fun take _ = raise NYI
+  fun update _ = raise NYI
+  fun zipWith3 _ = raise NYI
 
-  fun filterSome x = raise NYI
-  fun foreach x = raise NYI
-  fun foreachG x = raise NYI
+  fun filterSome _ = raise NYI
+  fun foreach _ = raise NYI
+  fun foreachG _ = raise NYI
 
 end

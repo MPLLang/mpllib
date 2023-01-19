@@ -44,7 +44,7 @@ struct
         if Time.<= (warmup, Time.zeroTime) then ()
         else ( print ("====== WARMUP ======\n" ^ msg ^ "\n")
              ; warmupLoop (Time.now ())
-             ; print ("==== END WARMUP ====\n")
+             ; print "==== END WARMUP ====\n"
              )
 
       val _ = print (msg ^ "\n")

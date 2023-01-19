@@ -19,8 +19,8 @@ struct
 
   fun empty () = (0, 0, fn _ => raise Subscript)
   fun length (i, j, _) = j - i
-  fun nth (i, j, f) k = f (i+k)
-  fun take (i, j, f) k = (i, i+k, f)
+  fun nth (i, _, f) k = f (i+k)
+  fun take (i, _, f) k = (i, i+k, f)
   fun drop (i, j, f) k = (i+k, j, f)
 
   fun tabulate f n = (0, n, f)
@@ -42,5 +42,3 @@ struct
              f (l, r)
            end
 end
-
-

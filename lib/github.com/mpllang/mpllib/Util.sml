@@ -7,7 +7,7 @@ sig
 
   val die: string -> 'a
 
-  val repeat: int * (unit -> 'a)  -> ('a)
+  val repeat: int * (unit -> 'a)  -> 'a
 
   val hash64: Word64.word -> Word64.word
   val hash64_2: Word64.word -> Word64.word
@@ -346,7 +346,7 @@ struct
         end)
 
 
-  fun equalLists eq ([], []) = true
+  fun equalLists _ ([], []) = true
     | equalLists eq (x :: xs, y :: ys) =
         eq (x, y) andalso equalLists eq (xs, ys)
     | equalLists _ _ = false

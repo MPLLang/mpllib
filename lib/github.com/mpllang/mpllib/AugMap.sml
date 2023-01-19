@@ -75,9 +75,7 @@ struct
 
     fun singleton_weight () = 1
 
-    val ratio =
-      case T.balance of
-        WB (x) => x / (1.0 - x)
+    val ratio = let val WB x = T.balance in x / (1.0 - x) end
 
     fun size_heavy s1 s2 =
       ratio * (Real.fromInt s1) > (Real.fromInt s2)
@@ -97,7 +95,7 @@ struct
     fun rotateLeft m =
       case m of
         Leaf => m
-      | Node {l, k, v, a, r, size} =>
+      | Node {l, k, v, a=_, r, size=_} =>
           case r of
             Leaf => m
           | Node {l = rl, k = rk, v = rv, r = rr, ...} =>
@@ -110,7 +108,7 @@ struct
     fun rotateRight m =
       case m of
         Leaf => m
-      | Node {l, k, v, a, r, size} =>
+      | Node {l, k, v, a=_, r, size=_} =>
           case l of
             Leaf => m
           | Node {l = ll, k = lk, v = lv, r = lr, ...} =>
@@ -129,7 +127,7 @@ struct
         else
           case m2 of
             Leaf => compose m1 k v m2
-          | Node {l, k = kr, v = vr, r, size, ...} =>
+          | Node {l, k = kr, v = vr, r, ...} =>
               let
                 val t' = joinLeft m1 k v l
                 val (wlt', wrt') = case t' of
@@ -153,7 +151,7 @@ struct
         else
           case m1 of
             Leaf => compose m1 k v m2
-          | Node {l, k = kl, v = vl, r, size, ...} =>
+          | Node {l, k = kl, v = vl, r, ...} =>
               let
                 val t' = joinRight r k v m2
                 val (wlt', wrt') = case t' of
@@ -182,12 +180,12 @@ struct
     else (f1(), f2())
 
   fun join m1 k v m2 =
-    case T.balance of
-      WB _ => WBST.join m1 k v m2
+    let val WB _ = T.balance
+    in WBST.join m1 k v m2 end
 
   fun join2 m1 m2 =
     let
-      fun splitLast {l, k, v, a, r, size, ...} =
+      fun splitLast {l, k, v, r, ...} =
         case r of
           Leaf => (l, k, v)
         | Node n =>
@@ -228,7 +226,7 @@ struct
   fun find m k =
     case m of
       Leaf => NONE
-    | Node ({l, k = kr, v, r, ...}) =>
+    | Node {l, k = kr, v, r, ...} =>
         case T.compare(k, kr) of
           LESS => find l k
         | EQUAL => SOME v
@@ -288,7 +286,7 @@ struct
                     end
                 val (lk, rk) = bin_search kr i j
                 val (l, r) = par (fn _ => insert_helper l i lk, fn _ => insert_helper r rk j)
-                val nvr = SeqBasis.foldl (fn (v', (k, v)) => h (v, v')) vr (lk, rk) (Seq.nth ss)
+                val nvr = SeqBasis.foldl (fn (v', (_, v)) => h (v, v')) vr (lk, rk) (Seq.nth ss)
               in
                 join l kr nvr r
               end
@@ -367,7 +365,7 @@ struct
           f(f(l', g(k, v)), r')
         end
 
-  fun build ss i j =
+  fun build ss i _ =
     let
 
       val t0 = Time.now ()
@@ -405,7 +403,7 @@ struct
   fun aug_filter m h =
     case m of
       Leaf => m
-    | Node {l, k, v, r, a, size, ...} =>
+    | Node {l, k, v, r, size, ...} =>
         let
           val (l', r') = eval (size > gran, fn _ => aug_filter l h, fn _ => aug_filter r h)
         in
@@ -481,7 +479,7 @@ struct
       aug_proj m
     end
 
-  fun aug_range m k1 k2 = aug_project (fn x => x) (T.f) m k1 k2
+  fun aug_range m k1 k2 = aug_project (fn x => x) T.f m k1 k2
 
   fun aug_left m k =
     case m of

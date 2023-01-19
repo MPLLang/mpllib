@@ -245,14 +245,14 @@ struct
             Int.max (0, i)
           end
 
-        fun remap {width, height, data} =
+        fun remap {width =_, height=_, data} =
           AS.full (SeqBasis.tabulate 100 (0, Seq.length data)
                     (remapOne o Seq.nth data))
       in
         {colors = palette, remap = remap}
       end
 
-    fun summarize cs sz ({data, width, height}: image) =
+    fun summarize cs sz ({data, width=_, height=_}: image) =
       let
         val n = Seq.length data
         fun sample i = Seq.nth data (Util.hash i mod n)
@@ -298,17 +298,21 @@ struct
       ; nextCode := Util.boundPow2 numColors + 2
       )
 
-    fun insert (code, idx) ({nextCode, numColors, table}: t) =
-      if !nextCode = 4095 then
-        false (* GIF limits the maximum code number to 4095 *)
-      else
-        ( Array.update (table, code, (idx, !nextCode) :: Array.sub (table, code))
-        ; nextCode := !nextCode + 1
-        ; true
-        )
+    fun insert (code, idx) ({nextCode, numColors=_, table}: t) =
+      let
+        (* GIF limits the maximum code number to 4095 *)
+        val ret = not (!nextCode <> 4095)
+      in
+        if ret then
+          ( Array.update (table, code, (idx, !nextCode) :: Array.sub (table, code))
+          ; nextCode := !nextCode + 1
+          )
+        else ();
+        ret
+      end
 
-    fun maybeLookup (code, idx) ({table, numColors, ...}: t) =
-      case List.find (fn (i, c) => i = idx) (Array.sub (table, code)) of
+    fun maybeLookup (code, idx) ({table, ...}: t) =
+      case List.find (fn (i, _) => i = idx) (Array.sub (table, code)) of
         SOME (_, c) => SOME c
       | NONE => NONE
 
@@ -553,7 +557,7 @@ struct
     if x >= 0 andalso x <= 65535 then
       Word16.fromInt x
     else
-      err (thing ^ " must be non-negative and less than 2^16");
+      err (thing ^ " must be non-negative and less than 2^16")
 
   fun packScreenDescriptorByte
         { colorTableFlag: bool
@@ -588,7 +592,7 @@ struct
         if numberOfColors <= 256 then ()
         else err "Must have at most 256 colors in the palette"
 
-      val (imageData, tm) = Util.getTime (fn _ =>
+      val (imageData, _) = Util.getTime (fn _ =>
         AS.full (SeqBasis.tabulate 1 (0, numImages) (fn i =>
           let
             val img = getImage i
@@ -604,8 +608,6 @@ struct
 
       val file = BinIO.openOut path
       val w8 = ExtraBinIO.w8 file
-      val w32b = ExtraBinIO.w32b file
-      val w32l = ExtraBinIO.w32l file
       val w16l = ExtraBinIO.w16l file
       val wrgb = ExtraBinIO.wrgb file
     in
@@ -640,7 +642,7 @@ struct
       Util.for (0, numberOfColors) (fn i =>
         wrgb (Seq.nth (#colors palette) i));
 
-      Util.for (numberOfColors, Util.boundPow2 numberOfColors) (fn i =>
+      Util.for (numberOfColors, Util.boundPow2 numberOfColors) (fn _ =>
         wrgb Color.black);
 
       (* ==================================
