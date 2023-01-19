@@ -1,0 +1,4 @@
+version = 1
+workspace.root = "lib/github.com/mpllang/mpllib/sources.mlton.mlb"
+[diagnostics]
+5028.severity = "ignore"
