@@ -1,4 +1,4 @@
-functor MkDelayedSeq (Stream: STREAM) : SEQUENCE =
+functor MkDelayedSeq(Stream: STREAM): SEQUENCE =
 struct
 
   exception NYI
@@ -17,10 +17,11 @@ struct
   fun numBlocks n = Util.ceilDiv n blockSize
 
   fun blockStart b _ = b * blockSize
-  fun blockEnd b n = Int.min (n, (b+1) * blockSize)
-  fun getBlockSize b n = blockEnd b n - blockStart b n
-  fun convertToBlockIdx i _ =
-    (i div blockSize, i mod blockSize)
+  fun blockEnd b n =
+    Int.min (n, (b + 1) * blockSize)
+  fun getBlockSize b n =
+    blockEnd b n - blockStart b n
+  fun convertToBlockIdx i _ = (i div blockSize, i mod blockSize)
 
   structure A =
   struct
@@ -39,16 +40,14 @@ struct
 
   type 'a rad = int * int * (int -> 'a)
   type 'a bid = int * (int -> 'a Stream.t)
-  datatype 'a seq =
-    Full of 'a AS.t
-  | Rad of 'a rad
-  | Bid of 'a bid
+  datatype 'a seq = Full of 'a AS.t | Rad of 'a rad | Bid of 'a bid
 
   type 'a t = 'a seq
 
 
-  fun radlength (start, stop, _) = stop-start
-  fun radnth (start, _, f) i = f (start+i)
+  fun radlength (start, stop, _) = stop - start
+  fun radnth (start, _, f) i =
+    f (start + i)
 
 
   fun length s =
@@ -63,10 +62,8 @@ struct
       Full slice => AS.nth slice i
     | Rad rad => radnth rad i
     | Bid (n, getBlock) =>
-        let
-          val (outer, inner) = convertToBlockIdx i n
-        in
-          Stream.nth (getBlock outer) inner
+        let val (outer, inner) = convertToBlockIdx i n
+        in Stream.nth (getBlock outer) inner
         end
 
 
@@ -77,14 +74,11 @@ struct
     in
       case s of
         Full slice =>
-          let
-            val (a, start, n) = AS.base slice
-          in
-            (n, block start (A.nth a))
+          let val (a, start, n) = AS.base slice
+          in (n, block start (A.nth a))
           end
 
-      | Rad (start, stop, nth) =>
-          (stop-start, block start nth)
+      | Rad (start, stop, nth) => (stop - start, block start nth)
 
       | Bid xx => xx
     end
@@ -98,7 +92,8 @@ struct
         let
           val lo = blockStart b n
         in
-          Stream.applyIdx (getBlockSize b n, getBlock b) (fn (j, x) => g (lo+j, x))
+          Stream.applyIdx (getBlockSize b n, getBlock b) (fn (j, x) =>
+            g (lo + j, x))
         end)
     end
 
@@ -108,58 +103,45 @@ struct
 
 
   fun reify s =
-    let
-      val a = alloc (length s)
-    in
-      applyIdx s (fn (i, x) => A.update (a, i, x));
-      AS.full a
+    let val a = alloc (length s)
+    in applyIdx s (fn (i, x) => A.update (a, i, x)); AS.full a
     end
 
 
-  fun force s = Full (reify s)
+  fun force s =
+    Full (reify s)
 
 
   fun radify s =
     case s of
-      Full slice =>
-        let
-          val (a, i, n) = AS.base slice
-        in
-          (i, i+n, A.nth a)
-        end
+      Full slice => let val (a, i, n) = AS.base slice in (i, i + n, A.nth a) end
 
     | Rad xx => xx
 
-    | Bid _ =>
-        radify (force s)
+    | Bid _ => radify (force s)
 
 
-  fun tabulate f n =
-    Rad (0, n, f)
+  fun tabulate f n = Rad (0, n, f)
 
 
   fun fromList xs =
     Full (AS.full (Array.fromList xs))
 
 
-  fun % xs =
-    fromList xs
+  fun % xs = fromList xs
 
 
   fun singleton x =
     Rad (0, 1, fn _ => x)
 
 
-  fun $ x =
-    singleton x
+  fun $ x = singleton x
 
 
-  fun empty () =
-    fromList []
+  fun empty () = fromList []
 
 
-  fun fromArraySeq a =
-    Full a
+  fun fromArraySeq a = Full a
 
 
   fun range (i, j) =
@@ -182,32 +164,31 @@ struct
   fun mapIdx f s =
     case s of
       Full _ => mapIdx f (Rad (radify s))
-    | Rad (i, j, g) => Rad (0, j-i, fn k => f (k, g (i+k)))
+    | Rad (i, j, g) => Rad (0, j - i, fn k => f (k, g (i + k)))
     | Bid (n, getBlock) =>
         Bid (n, fn b =>
-          Stream.mapIdx (fn (i, x) => f (b*blockSize + i, x)) (getBlock b))
+          Stream.mapIdx (fn (i, x) => f (b * blockSize + i, x)) (getBlock b))
 
 
   fun enum s =
-    mapIdx (fn (i,x) => (i,x)) s
+    mapIdx (fn (i, x) => (i, x)) s
 
 
   fun flatten (ss: 'a seq seq) : 'a seq =
     let
       val numChildren = length ss
       val children: 'a rad AS.t = reify (map radify ss)
-      val offsets =
-        SeqBasis.scan gran op+ 0 (0, numChildren) (radlength o AS.nth children)
+      val offsets = SeqBasis.scan gran op+ 0 (0, numChildren)
+        (radlength o AS.nth children)
       val totalLen = A.nth offsets numChildren
       fun offset i = A.nth offsets i
 
-      val getBlock =
-        Stream.makeBlockStreams
-          { blockSize = blockSize
-          , numChildren = numChildren
-          , offset = offset
-          , getElem = (fn i => fn j => radnth (AS.nth children i) j)
-          }
+      val getBlock = Stream.makeBlockStreams
+        { blockSize = blockSize
+        , numChildren = numChildren
+        , offset = offset
+        , getElem = (fn i => fn j => radnth (AS.nth children i) j)
+        }
     in
       Bid (totalLen, getBlock)
     end
@@ -217,22 +198,18 @@ struct
     let
       val (n, getBlock) = bidify s
       val nb = numBlocks n
-      val packed: 'b rad array =
-        SeqBasis.tabulate 1 (0, nb) (fn b =>
-          radify (Full (Stream.pack f (getBlockSize b n, getBlock b)))
-        )
-      val offsets =
-        SeqBasis.scan gran op+ 0 (0, nb) (radlength o A.nth packed)
+      val packed: 'b rad array = SeqBasis.tabulate 1 (0, nb) (fn b =>
+        radify (Full (Stream.pack f (getBlockSize b n, getBlock b))))
+      val offsets = SeqBasis.scan gran op+ 0 (0, nb) (radlength o A.nth packed)
       val totalLen = A.nth offsets nb
       fun offset i = A.nth offsets i
 
-      val getBlock' =
-        Stream.makeBlockStreams
-          { blockSize = blockSize
-          , numChildren = nb
-          , offset = offset
-          , getElem = (fn i => fn j => radnth (A.nth packed i) j)
-          }
+      val getBlock' = Stream.makeBlockStreams
+        { blockSize = blockSize
+        , numChildren = nb
+        , offset = offset
+        , getElem = (fn i => fn j => radnth (A.nth packed i) j)
+        }
     in
       Bid (totalLen, getBlock')
     end
@@ -247,7 +224,7 @@ struct
       val a = reify s
       val (base, i, _) = AS.base a
     in
-      apply u (fn (j, x) => Array.update (base, i+j, x));
+      apply u (fn (j, x) => Array.update (base, i + j, x));
       Full a
     end
 
@@ -265,15 +242,17 @@ struct
       val (lo1, hi1, nth1) = radify s1
       val (lo2, _, nth2) = radify s2
     in
-      Rad (0, hi1-lo1, fn i => f (nth1 (lo1+i), nth2 (lo2+i)))
+      Rad (0, hi1 - lo1, fn i => f (nth1 (lo1 + i), nth2 (lo2 + i)))
     end
 
   fun zipWith f (s1, s2) =
-    if length s1 <> length s2 then raise Size else
-    case (s1, s2) of
-      (Bid _, _) => bidZipWith f (s1, s2)
-    | (_, Bid _) => bidZipWith f (s1, s2)
-    | _ => radZipWith f (s1, s2)
+    if length s1 <> length s2 then
+      raise Size
+    else
+      case (s1, s2) of
+        (Bid _, _) => bidZipWith f (s1, s2)
+      | (_, Bid _) => bidZipWith f (s1, s2)
+      | _ => radZipWith f (s1, s2)
 
   fun zip (s1, s2) =
     zipWith (fn (x, y) => (x, y)) (s1, s2)
@@ -283,10 +262,8 @@ struct
     let
       val (n, getBlock) = bidify s
       val nb = numBlocks n
-      val blockSums =
-        SeqBasis.tabulate 1 (0, nb) (fn b =>
-          Stream.iterate f z (getBlockSize b n, getBlock b)
-        )
+      val blockSums = SeqBasis.tabulate 1 (0, nb) (fn b =>
+        Stream.iterate f z (getBlockSize b n, getBlock b))
       val p = SeqBasis.scan gran f z (0, nb) (A.nth blockSums)
       val t = A.nth p nb
       val r = Bid (n, fn b => Stream.iteratePrefixes f (A.nth p b) (getBlock b))
@@ -299,14 +276,11 @@ struct
     let
       val (n, getBlock) = bidify s
       val nb = numBlocks n
-      val blockSums =
-        SeqBasis.tabulate 1 (0, nb) (fn b =>
-          Stream.iterate f z (getBlockSize b n, getBlock b)
-        )
+      val blockSums = SeqBasis.tabulate 1 (0, nb) (fn b =>
+        Stream.iterate f z (getBlockSize b n, getBlock b))
       val p = SeqBasis.scan gran f z (0, nb) (A.nth blockSums)
     in
-      Bid (n, fn b =>
-        Stream.iteratePrefixesIncl f (A.nth p b) (getBlock b))
+      Bid (n, fn b => Stream.iteratePrefixesIncl f (A.nth p b) (getBlock b))
     end
 
 
@@ -319,8 +293,7 @@ struct
           val nb = numBlocks n
         in
           SeqBasis.reduce gran f z (0, nb) (fn b =>
-            Stream.iterate f z (getBlockSize b n, getBlock b)
-          )
+            Stream.iterate f z (getBlockSize b n, getBlock b))
         end
 
 
@@ -338,7 +311,7 @@ struct
       val n = length s
       val rads = radify s
     in
-      tabulate (fn i => radnth rads (n-i-1)) n
+      tabulate (fn i => radnth rads (n - i - 1)) n
     end
 
 
@@ -350,25 +323,25 @@ struct
       val rads = radify s
       val radt = radify t
 
-      fun elem i = if i < n then radnth rads i else radnth radt (i-n)
+      fun elem i =
+        if i < n then radnth rads i else radnth radt (i - n)
     in
-      tabulate elem (n+m)
+      tabulate elem (n + m)
     end
 
 
   fun subseq s (i, len) =
-    if i < 0 orelse len < 0 orelse i+len > length s then
+    if i < 0 orelse len < 0 orelse i + len > length s then
       raise Subscript
     else
-      let
-        val (start, _, nth) = radify s
-      in
-        Rad (start+i, start+i+len, nth)
+      let val (start, _, nth) = radify s
+      in Rad (start + i, start + i + len, nth)
       end
 
 
   fun take s n = subseq s (0, n)
-  fun drop s n = subseq s (n, length s - n)
+  fun drop s n =
+    subseq s (n, length s - n)
 
 
   fun toList s =
@@ -379,7 +352,9 @@ struct
 
   (* ===================================================================== *)
 
-  datatype 'a listview = NIL | CONS of 'a * 'a seq
+  datatype 'a listview =
+    NIL
+  | CONS of 'a * 'a seq
   datatype 'a treeview = EMPTY | ONE of 'a | PAIR of 'a seq * 'a seq
 
   type 'a ord = 'a * 'a -> order
@@ -408,6 +383,6 @@ struct
 end
 
 
-
-structure DelayedSeq = MkDelayedSeq (DelayedStream)
-(* structure DelayedSeq = MkDelayedSeq (RecursiveStream) *)
+structure DelayedSeq =
+  MkDelayedSeq
+    (DelayedStream) (* structure DelayedSeq = MkDelayedSeq (RecursiveStream) *)

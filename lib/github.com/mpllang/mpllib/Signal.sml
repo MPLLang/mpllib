@@ -12,50 +12,44 @@ struct
   structure A = Array
   structure AS = ArraySlice
 
-(*
-  structure A =
-  struct
-    open A
-    val update = Unsafe.Array.update
-    val sub = Unsafe.Array.sub
-  end
+  (*
+    structure A =
+    struct
+      open A
+      val update = Unsafe.Array.update
+      val sub = Unsafe.Array.sub
+    end
 
-  structure AS =
-  struct
-    open AS
-    fun update (s, i, x) =
-      let val (a, start, _) = base s
-      in A.update (a, start+i, x)
-      end
-    fun sub (s, i) =
-      let val (a, start, _) = base s
-      in A.sub (a, start+i)
-      end
-  end
-*)
+    structure AS =
+    struct
+      open AS
+      fun update (s, i, x) =
+        let val (a, start, _) = base s
+        in A.update (a, start+i, x)
+        end
+      fun sub (s, i) =
+        let val (a, start, _) = base s
+        in A.sub (a, start+i)
+        end
+    end
+  *)
 
-  fun delaySequential D (a : real) data =
+  fun delaySequential D (a: real) data =
     let
       val n = Seq.length data
       val output = ForkJoin.alloc n
     in
       Util.for (0, n) (fn i =>
-        if i < D then
-          A.update (output, i, Seq.nth data i)
-        else
-          A.update (output, i, Seq.nth data i + a * A.sub (output, i - D))
-      );
+        if i < D then A.update (output, i, Seq.nth data i)
+        else A.update (output, i, Seq.nth data i + a * A.sub (output, i - D)));
 
       AS.full output
     end
 
   fun pow (a: real) n =
-    if n <= 1 then
-      a
-    else if n mod 2 = 0 then
-      pow (a*a) (n div 2)
-    else
-      a * pow (a*a) (n div 2)
+    if n <= 1 then a
+    else if n mod 2 = 0 then pow (a * a) (n div 2)
+    else a * pow (a * a) (n div 2)
 
   (* Granularity parameters *)
   val blockWidth = CommandLineArgs.parseInt "comb-width" 600
@@ -69,96 +63,92 @@ struct
    * at row i, column j.
    *)
   fun delay' D alpha data =
-     if Seq.length data <= combGran then
+    if Seq.length data <= combGran then
       delaySequential D alpha data
     else
-    let
-      val n = Seq.length data
-      (* val _ = print ("delay' " ^ Int.toString D ^ " " ^ Int.toString n ^ "\n") *)
-      val output = ForkJoin.alloc n
+      let
+        val n = Seq.length data
+        (* val _ = print ("delay' " ^ Int.toString D ^ " " ^ Int.toString n ^ "\n") *)
+        val output = ForkJoin.alloc n
 
-      val numCols = D
-      val numRows = Util.ceilDiv n D
+        val numCols = D
+        val numRows = Util.ceilDiv n D
 
-      fun getOutput i j =
-        A.sub (output, i*numCols + j)
+        fun getOutput i j =
+          A.sub (output, i * numCols + j)
 
-      fun setOutput i j x =
-        let val idx = i*numCols + j
-        in if idx < n then A.update (output, idx, x) else ()
-        end
+        fun setOutput i j x =
+          let val idx = i * numCols + j
+          in if idx < n then A.update (output, idx, x) else ()
+          end
 
-      fun input i j =
-        let val idx = i*numCols + j
-        in if idx >= n then 0.0 else AS.sub (data, idx)
-        end
+        fun input i j =
+          let val idx = i * numCols + j
+          in if idx >= n then 0.0 else AS.sub (data, idx)
+          end
 
-      val powAlpha = pow alpha blockHeight
+        val powAlpha = pow alpha blockHeight
 
-      val numColumnStrips = Util.ceilDiv numCols blockWidth
-      val numRowStrips = Util.ceilDiv numRows blockHeight
+        val numColumnStrips = Util.ceilDiv numCols blockWidth
+        val numRowStrips = Util.ceilDiv numRows blockHeight
 
-      fun doColumnStrip c =
-        let
-          val jlo = blockWidth * c
-          val jhi = Int.min (numCols, jlo + blockWidth)
-          val width = jhi - jlo
-          val summaries =
-            AS.full (ForkJoin.alloc (width * numRowStrips))
+        fun doColumnStrip c =
+          let
+            val jlo = blockWidth * c
+            val jhi = Int.min (numCols, jlo + blockWidth)
+            val width = jhi - jlo
+            val summaries = AS.full (ForkJoin.alloc (width * numRowStrips))
 
-          fun doBlock b =
-            let
-              val ilo = blockHeight * b
-              val ihi = Int.min (numRows, ilo + blockHeight)
-              val ss = Seq.subseq summaries (width * b, width)
-            in
-              Util.for (0, width) (fn j => AS.update (ss, j, input ilo (jlo+j)));
-
-              Util.for (ilo+1, ihi) (fn i =>
+            fun doBlock b =
+              let
+                val ilo = blockHeight * b
+                val ihi = Int.min (numRows, ilo + blockHeight)
+                val ss = Seq.subseq summaries (width * b, width)
+              in
                 Util.for (0, width) (fn j =>
-                  AS.update (ss, j, input i (jlo+j) + alpha * AS.sub (ss, j))
-                )
-              )
-            end
+                  AS.update (ss, j, input ilo (jlo + j)));
 
-          val _ = ForkJoin.parfor 1 (0, numRowStrips) doBlock
-          val summaries' = delay' width powAlpha summaries
-
-          fun fillOutputBlock b =
-            let
-              val ilo = blockHeight * b
-              val ihi = Int.min (numRows, ilo + blockHeight)
-            in
-              if b = 0 then
-                Util.for (jlo, jhi) (fn j => setOutput 0 j (input 0 j))
-              else
-                let
-                  val ss = Seq.subseq summaries' (width * (b-1), width)
-                in
+                Util.for (ilo + 1, ihi) (fn i =>
                   Util.for (0, width) (fn j =>
-                    setOutput ilo (jlo+j) (input ilo (jlo+j) + alpha * AS.sub (ss, j)))
-                end;
+                    AS.update
+                      (ss, j, input i (jlo + j) + alpha * AS.sub (ss, j))))
+              end
 
-              Util.for (ilo+1, ihi) (fn i =>
-                Util.for (jlo, jhi) (fn j =>
-                  setOutput i j (input i j + alpha * getOutput (i-1) j)
-                )
-              )
-            end
-        in
-          ForkJoin.parfor 1 (0, numRowStrips) fillOutputBlock
-        end
-    in
-      ForkJoin.parfor 1 (0, numColumnStrips) doColumnStrip;
+            val _ = ForkJoin.parfor 1 (0, numRowStrips) doBlock
+            val summaries' = delay' width powAlpha summaries
 
-      AS.full output
-    end
+            fun fillOutputBlock b =
+              let
+                val ilo = blockHeight * b
+                val ihi = Int.min (numRows, ilo + blockHeight)
+              in
+                if b = 0 then
+                  Util.for (jlo, jhi) (fn j => setOutput 0 j (input 0 j))
+                else
+                  let
+                    val ss = Seq.subseq summaries' (width * (b - 1), width)
+                  in
+                    Util.for (0, width) (fn j =>
+                      setOutput ilo (jlo + j)
+                        (input ilo (jlo + j) + alpha * AS.sub (ss, j)))
+                  end;
+
+                Util.for (ilo + 1, ihi) (fn i =>
+                  Util.for (jlo, jhi) (fn j =>
+                    setOutput i j (input i j + alpha * getOutput (i - 1) j)))
+              end
+          in
+            ForkJoin.parfor 1 (0, numRowStrips) fillOutputBlock
+          end
+      in
+        ForkJoin.parfor 1 (0, numColumnStrips) doColumnStrip;
+
+        AS.full output
+      end
 
   fun delay ds alpha ({sr, data}: sound) =
-    let
-      val D = Real.round (ds * Real.fromInt sr)
-    in
-      {sr = sr, data = delay' D alpha data}
+    let val D = Real.round (ds * Real.fromInt sr)
+    in {sr = sr, data = delay' D alpha data}
     end
 
   fun allPass' D a data =
@@ -169,7 +159,7 @@ struct
         let
           val k = j - D
         in
-          (1.0 - a*a) * (if k < 0 then 0.0 else Seq.nth combed k)
+          (1.0 - a * a) * (if k < 0 then 0.0 else Seq.nth combed k)
           - (a * Seq.nth data j)
         end
     in
@@ -177,34 +167,23 @@ struct
     end
 
   fun allPass ds a ({sr, data}: sound) =
-    let
-      (* convert to samples *)
-      val D = Real.round (ds * Real.fromInt sr)
-    in
-      { sr = sr
-      , data = allPass' D a data
-      }
+    let (* convert to samples *) val D = Real.round (ds * Real.fromInt sr)
+    in {sr = sr, data = allPass' D a data}
     end
 
   val par = ForkJoin.par
 
   fun par4 (a, b, c, d) =
-    let
-      val ((ar, br), (cr, dr)) =
-        par (fn _ => par (a, b), fn _ => par (c, d))
-    in
-      (ar, br, cr, dr)
+    let val ((ar, br), (cr, dr)) = par (fn _ => par (a, b), fn _ => par (c, d))
+    in (ar, br, cr, dr)
     end
 
   fun shiftBy n s i =
-    if i < n then
-      0.0
-    else if i < Seq.length s + n then
-      Seq.nth s (i-n)
-    else
-      0.0
+    if i < n then 0.0
+    else if i < Seq.length s + n then Seq.nth s (i - n)
+    else 0.0
 
-  fun reverb ({sr, data=dry}: sound) =
+  fun reverb ({sr, data = dry}: sound) =
     let
       val N = Seq.length dry
 
@@ -217,7 +196,8 @@ struct
        * than 44.1 kHz, they almost certainly won't be now. *)
 
       val srr = Real.fromInt sr
-      fun secondsToSamples sec = Real.round (sec * srr)
+      fun secondsToSamples sec =
+        Real.round (sec * srr)
       fun secondsAt441 samples = Real.fromInt samples / 44100.0
       fun adjust x =
         if sr = 44100 then x else secondsToSamples (secondsAt441 x)
@@ -249,16 +229,15 @@ struct
        *)
 
       val (c1, c2, c3, c4) =
-        par4 (fn _ => delay' D1 0.7 dry,
-              fn _ => delay' D2 0.7 dry,
-              fn _ => delay' D3 0.7 dry,
-              fn _ => delay' D4 0.7 dry)
+        par4
+          ( fn _ => delay' D1 0.7 dry
+          , fn _ => delay' D2 0.7 dry
+          , fn _ => delay' D3 0.7 dry
+          , fn _ => delay' D4 0.7 dry
+          )
 
       fun combs i =
-        (Seq.nth c1 i +
-         Seq.nth c2 i +
-         Seq.nth c3 i +
-         Seq.nth c4 i)
+        (Seq.nth c1 i + Seq.nth c2 i + Seq.nth c3 i + Seq.nth c4 i)
 
       val fused = Seq.tabulate combs N
       val fused = allPass' DA1 0.6 fused
@@ -275,16 +254,15 @@ struct
        * approximately 35ms
        *)
 
-      val wet = Seq.tabulate (fn i =>
-          shiftBy 0 dry i
-          + 0.6 * (shiftBy DE1 dry i)
-          + 0.5 * (shiftBy DE2 dry i)
-          + 0.4 * (shiftBy DE3 dry i)
-          + 0.75 * (shiftBy DF fused i))
-        (N + DF)
+      val wet =
+        Seq.tabulate
+          (fn i =>
+             shiftBy 0 dry i + 0.6 * (shiftBy DE1 dry i)
+             + 0.5 * (shiftBy DE2 dry i) + 0.4 * (shiftBy DE3 dry i)
+             + 0.75 * (shiftBy DF fused i)) (N + DF)
 
     in
-      NewWaveIO.compress 2.0 {sr=sr, data=wet}
+      NewWaveIO.compress 2.0 {sr = sr, data = wet}
     end
 
 end

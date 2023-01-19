@@ -9,10 +9,8 @@ struct
         in
           print (msg ^ " " ^ Time.fmt 4 tm ^ "s\n");
 
-          if n <= 1 then
-            (result, List.rev (tm :: tms))
-          else
-            loop (tm :: tms) (n-1)
+          if n <= 1 then (result, List.rev (tm :: tms))
+          else loop (tm :: tms) (n - 1)
         end
     in
       loop [] n
@@ -20,11 +18,10 @@ struct
 
   fun run msg f =
     let
-      val warmup = Time.fromReal (Real.toLarge (CommandLineArgs.parseReal "warmup" 0.0))
+      val warmup = Time.fromReal (Real.toLarge
+        (CommandLineArgs.parseReal "warmup" 0.0))
       val rep = CommandLineArgs.parseInt "repeat" 1
-      val _ =
-        if rep >= 1 then ()
-        else Util.die "-repeat N must be at least 1"
+      val _ = if rep >= 1 then () else Util.die "-repeat N must be at least 1"
 
       val _ = print ("warmup " ^ Time.fmt 4 warmup ^ "\n")
       val _ = print ("repeat " ^ Int.toString rep ^ "\n")
@@ -33,19 +30,18 @@ struct
         if Time.>= (Time.- (Time.now (), startTime), warmup) then
           () (* warmup done! *)
         else
-          let
-            val (_, tm) = Util.getTime f
-          in
-            print ("warmup_run " ^ Time.fmt 4 tm ^ "s\n");
-            warmupLoop startTime
+          let val (_, tm) = Util.getTime f
+          in print ("warmup_run " ^ Time.fmt 4 tm ^ "s\n"); warmupLoop startTime
           end
 
       val _ =
-        if Time.<= (warmup, Time.zeroTime) then ()
-        else ( print ("====== WARMUP ======\n" ^ msg ^ "\n")
-             ; warmupLoop (Time.now ())
-             ; print "==== END WARMUP ====\n"
-             )
+        if Time.<= (warmup, Time.zeroTime) then
+          ()
+        else
+          ( print ("====== WARMUP ======\n" ^ msg ^ "\n")
+          ; warmupLoop (Time.now ())
+          ; print "==== END WARMUP ====\n"
+          )
 
       val _ = print (msg ^ "\n")
       val t0 = Time.now ()
@@ -54,7 +50,9 @@ struct
       val endToEnd = Time.- (t1, t0)
 
       val total = List.foldl Time.+ Time.zeroTime tms
-      val avg = (Real.fromLarge IEEEReal.TO_NEAREST (Time.toReal total)) / (Real.fromInt rep)
+      val avg =
+        (Real.fromLarge IEEEReal.TO_NEAREST (Time.toReal total))
+        / (Real.fromInt rep)
     in
       print "\n";
       print ("average " ^ Real.fmt (StringCvt.FIX (SOME 4)) avg ^ "s\n");

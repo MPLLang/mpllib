@@ -28,8 +28,8 @@ struct
       let
         (* maximum amplitude *)
         val maxA =
-          SeqBasis.reduce 10000 Real.max 1.0 (0, Seq.length data)
-            (fn i => Real.abs (Seq.nth data i))
+          SeqBasis.reduce 10000 Real.max 1.0 (0, Seq.length data) (fn i =>
+            Real.abs (Seq.nth data i))
 
         (* a little buffer of intensity to avoid distortion *)
         val maxA' = 1.05 * maxA
@@ -45,9 +45,7 @@ struct
             Real.copySign (Math.ln (1.0 + boost * x') / scale, x)
           end
       in
-        { sr = sr
-        , data = Seq.map transfer data
-        }
+        {sr = sr, data = Seq.map transfer data}
       end
 
   fun readSound path =
@@ -61,10 +59,9 @@ struct
           offset (* found it! *)
         else
           let
-            val chunkSize = Word32.toInt (Parse.r32l bytes (offset+4))
-            val chunkName =
-              CharVector.tabulate (4, fn i =>
-                Char.chr (Word8.toInt (Seq.nth bytes (offset+i))))
+            val chunkSize = Word32.toInt (Parse.r32l bytes (offset + 4))
+            val chunkName = CharVector.tabulate (4, fn i =>
+              Char.chr (Word8.toInt (Seq.nth bytes (offset + i))))
           in
             if chunkSize < 0 then
               err ("error parsing chunk size of '" ^ chunkName ^ "' chunk")
@@ -92,10 +89,12 @@ struct
 
       val totalFileSize = 8 + chunkSize
       val _ =
-        if Seq.length bytes >= totalFileSize then ()
-        else err ("expected " ^ Int.toString totalFileSize ^
-                  " bytes but the file is only " ^
-                  Int.toString (Seq.length bytes))
+        if Seq.length bytes >= totalFileSize then
+          ()
+        else
+          err
+            ("expected " ^ Int.toString totalFileSize
+             ^ " bytes but the file is only " ^ Int.toString (Seq.length bytes))
 
       val offset = 8
       val wave = 0wx57415645 (* ascii "WAVE" big endian *)
@@ -117,34 +116,37 @@ struct
         if Parse.r32b bytes offset = fmtId then ()
         else err "expected 'fmt ' chunk ID"
 
-      val offset = offset+4
+      val offset = offset + 4
       val fmtChunkSize = Word32.toInt (Parse.r32l bytes offset)
       val _ =
         if fmtChunkSize >= 16 then ()
         else err "expected 'fmt ' chunk to be at least 16 bytes"
 
-      val offset = offset+4
+      val offset = offset + 4
       val audioFormat = Word16.toInt (Parse.r16l bytes offset)
       val _ =
-        if audioFormat = 1 then ()
-        else err ("expected PCM audio format, but found 0x"
-                  ^ Int.fmt StringCvt.HEX audioFormat)
+        if audioFormat = 1 then
+          ()
+        else
+          err
+            ("expected PCM audio format, but found 0x"
+             ^ Int.fmt StringCvt.HEX audioFormat)
 
-      val offset = offset+2
+      val offset = offset + 2
       val numChannels = Word16.toInt (Parse.r16l bytes offset)
 
-      val offset = offset+2
+      val offset = offset + 2
       val sampleRate = Word32.toInt (Parse.r32l bytes offset)
 
-      val offset = offset+4
+      val offset = offset + 4
 
-      val offset = offset+4
+      val offset = offset + 4
 
-      val offset = offset+2
+      val offset = offset + 2
       val bitsPerSample = Word16.toInt (Parse.r16l bytes offset)
       val bytesPerSample = bitsPerSample div 8
 
-      val offset = fmtChunkStart+8+fmtChunkSize
+      val offset = fmtChunkStart + 8 + fmtChunkSize
 
       (* =======================================================
        * data subchunk, should be the rest of the file
@@ -181,21 +183,22 @@ struct
 
       (* jth sample of ith channel *)
       fun readChannel i j =
-        readSample (dataStart + j * (numChannels * bytesPerSample)
-                              + i * bytesPerSample)
+        readSample
+          (dataStart + j * (numChannels * bytesPerSample) + i * bytesPerSample)
 
-      val rawData =
-        AS.full (SeqBasis.tabulate 1000 (0, numSamples) (fn j =>
-            Util.loop (0, numChannels) 0.0 (fn (s, i) => s + readChannel i j)))
+      val rawData = AS.full (SeqBasis.tabulate 1000 (0, numSamples) (fn j =>
+        Util.loop (0, numChannels) 0.0 (fn (s, i) => s + readChannel i j)))
 
       val rawResult = {sr = sampleRate, data = rawData}
     in
       if numChannels = 1 then
         rawResult
       else
-        ( TextIO.output (TextIO.stdErr,
-            "[WARN] mixing " ^ Int.toString numChannels
-            ^ " channels down to mono\n")
+        ( TextIO.output
+            ( TextIO.stdErr
+            , "[WARN] mixing " ^ Int.toString numChannels
+              ^ " channels down to mono\n"
+            )
         ; compress 1.0 rawResult
         )
     end
@@ -212,8 +215,7 @@ struct
       val w32l = ExtraBinIO.w32l file
       val w16l = ExtraBinIO.w16l file
 
-      val totalBytes =
-        44 + (Seq.length data * 2)
+      val totalBytes = 44 + (Seq.length data * 2)
 
       val riffId = 0wx52494646 (* ascii "RIFF", big endian *)
       val fmtId = 0wx666d7420 (* ascii "fmt " big endian *)
@@ -229,13 +231,13 @@ struct
       (* ============================
        * fmt subchunk, 24 bytes *)
       w32b fmtId;
-      w32l 0w16;    (* 16 remaining bytes in subchunk *)
-      w16l 0w1;     (* audio format PCM = 1 *)
-      w16l 0w1;     (* 1 channel (mono) *)
-      w32l srw;     (* sample rate *)
+      w32l 0w16; (* 16 remaining bytes in subchunk *)
+      w16l 0w1; (* audio format PCM = 1 *)
+      w16l 0w1; (* 1 channel (mono) *)
+      w32l srw; (* sample rate *)
       w32l (srw * 0w2); (* "byte rate" = sampleRate * numChannels * bytesPerSample *)
-      w16l 0w2;     (* "block align" = numChannels * bytesPerSample *)
-      w16l 0w16;    (* bits per sample *)
+      w16l 0w2; (* "block align" = numChannels * bytesPerSample *)
+      w16l 0w16; (* bits per sample *)
 
       (* ============================
        * data subchunk: rest of file *)
@@ -245,10 +247,7 @@ struct
       Util.for (0, Seq.length data) (fn i =>
         let
           val s = Seq.nth data i
-          val s =
-            if s < ~1.0 then ~1.0
-            else if s > 1.0 then 1.0
-            else s
+          val s = if s < ~1.0 then ~1.0 else if s > 1.0 then 1.0 else s
           val s = Real.round (s * 32767.0)
           val s = if s < 0 then s + 65536 else s
         in

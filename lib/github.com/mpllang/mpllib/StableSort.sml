@@ -10,7 +10,8 @@ struct
 
   structure AS = ArraySlice
 
-  fun take s n = AS.subslice (s, 0, SOME n)
+  fun take s n =
+    AS.subslice (s, 0, SOME n)
   fun drop s n = AS.subslice (s, n, NONE)
 
   val par = ForkJoin.par
@@ -20,53 +21,51 @@ struct
   fun sortInPlace' cmp s t =
     if AS.length s <= 1 then
       ()
-    else let
-      val half = AS.length s div 2
-      val (sl, sr) = (take s half, drop s half)
-      val (tl, tr) = (take t half, drop t half)
-    in
-      (* recursively sort, writing result into t *)
-      if AS.length s <= 1024 then
-        (writeSort cmp sl tl; writeSort cmp sr tr)
-      else
-        ( par (fn _ => writeSort cmp sl tl, fn _ => writeSort cmp sr tr)
-        ; ()
-        );
+    else
+      let
+        val half = AS.length s div 2
+        val (sl, sr) = (take s half, drop s half)
+        val (tl, tr) = (take t half, drop t half)
+      in
+        (* recursively sort, writing result into t *)
+        if AS.length s <= 1024 then
+          (writeSort cmp sl tl; writeSort cmp sr tr)
+        else
+          (par (fn _ => writeSort cmp sl tl, fn _ => writeSort cmp sr tr); ());
 
-      (* merge back from t into s *)
-      StableMerge.writeMerge cmp (tl, tr) s;
+        (* merge back from t into s *)
+        StableMerge.writeMerge cmp (tl, tr) s;
 
-      ()
-    end
+        ()
+      end
 
   (* destructively sort s, writing the result in t *)
   and writeSort cmp s t =
     if AS.length s <= 1 then
       Util.foreach s (fn (i, x) => AS.update (t, i, x))
-    else let
-      val half = AS.length s div 2
-      val (sl, sr) = (take s half, drop s half)
-      val (tl, tr) = (take t half, drop t half)
-    in
-      (* recursively in-place sort sl and sr *)
-      if AS.length s <= 1024 then
-        (sortInPlace' cmp sl tl; sortInPlace' cmp sr tr)
-      else
-        ( par (fn _ => sortInPlace' cmp sl tl, fn _ => sortInPlace' cmp sr tr)
-        ; ()
-        );
+    else
+      let
+        val half = AS.length s div 2
+        val (sl, sr) = (take s half, drop s half)
+        val (tl, tr) = (take t half, drop t half)
+      in
+        (* recursively in-place sort sl and sr *)
+        if AS.length s <= 1024 then
+          (sortInPlace' cmp sl tl; sortInPlace' cmp sr tr)
+        else
+          ( par (fn _ => sortInPlace' cmp sl tl, fn _ => sortInPlace' cmp sr tr)
+          ; ()
+          );
 
-      (* merge into t *)
-      StableMerge.writeMerge cmp (sl, sr) t;
+        (* merge into t *)
+        StableMerge.writeMerge cmp (sl, sr) t;
 
-      ()
-    end
+        ()
+      end
 
   fun sortInPlace cmp s =
-    let
-      val t = AS.full (allocate (AS.length s))
-    in
-      sortInPlace' cmp s t
+    let val t = AS.full (allocate (AS.length s))
+    in sortInPlace' cmp s t
     end
 
   fun sort cmp s =

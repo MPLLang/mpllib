@@ -22,43 +22,30 @@ struct
       val trickle = stream ()
 
       fun loop j =
-        let
-          val x = trickle j
-        in
-          if j = i then x else loop (j+1)
+        let val x = trickle j
+        in if j = i then x else loop (j + 1)
         end
     in
       loop 0
     end
 
 
-  fun tabulate f =
-    fn () => f
+  fun tabulate f = fn () => f
 
 
   fun map g stream =
-    fn () =>
-      let
-        val trickle = stream ()
-      in
-        g o trickle
-      end
+    fn () => let val trickle = stream () in g o trickle end
 
 
   fun mapIdx g stream =
-    fn () =>
-      let
-        val trickle = stream ()
-      in
-        fn idx => g (idx, trickle idx)
-      end
+    fn () => let val trickle = stream () in fn idx => g (idx, trickle idx) end
 
 
   fun applyIdx (length, stream) g =
     let
       val trickle = stream ()
       fun loop i =
-        if i >= length then () else (g (i, trickle i); loop (i+1))
+        if i >= length then () else (g (i, trickle i); loop (i + 1))
     in
       loop 0
     end
@@ -105,11 +92,8 @@ struct
         if i < length andalso next < Array.length data then
           case f (trickle i) of
             SOME y =>
-              ( Array.update (data, next, y)
-              ; loop (data, next+1) (i+1)
-              )
-          | NONE =>
-              loop (data, next) (i+1)
+              (Array.update (data, next, y); loop (data, next + 1) (i + 1))
+          | NONE => loop (data, next) (i + 1)
 
         else if next >= Array.length data then
           loop (resize data, next) i
@@ -127,7 +111,7 @@ struct
     let
       val trickle = stream ()
       fun loop b i =
-        if i >= length then b else loop (g (b, trickle i)) (i+1)
+        if i >= length then b else loop (g (b, trickle i)) (i + 1)
     in
       loop b 0
     end
@@ -180,19 +164,17 @@ struct
 
 
   fun makeBlockStreams
-        { blockSize: int
-        , numChildren: int
-        , offset: int -> int
-        , getElem: int -> int -> 'a
-        } =
+    { blockSize: int
+    , numChildren: int
+    , offset: int -> int
+    , getElem: int -> int -> 'a
+    } =
     let
       fun getBlock blockIdx =
         let
           fun advanceUntilNonEmpty i =
-            if i >= numChildren orelse offset i <> offset (i+1) then
-              i
-            else
-              advanceUntilNonEmpty (i+1)
+            if i >= numChildren orelse offset i <> offset (i + 1) then i
+            else advanceUntilNonEmpty (i + 1)
         in
           fn () =>
             let
@@ -208,10 +190,8 @@ struct
                   (* val j = !innerIdx *)
                   val elem = getElem i j
                 in
-                  if offset i + j + 1 < offset (i+1) then
-                    ()
-                  else
-                    outerIdx := advanceUntilNonEmpty (i+1);
+                  if offset i + j + 1 < offset (i + 1) then ()
+                  else outerIdx := advanceUntilNonEmpty (i + 1);
                   elem
                 end
             end

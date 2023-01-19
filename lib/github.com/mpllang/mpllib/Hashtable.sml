@@ -12,19 +12,13 @@ end =
 struct
 
   datatype ('a, 'b) t =
-    S of
-      { data: ('a * 'b) option array
-      , hash: 'a -> int
-      , eq: 'a * 'a -> bool
-      }
+    S of {data: ('a * 'b) option array, hash: 'a -> int, eq: 'a * 'a -> bool}
 
   type ('a, 'b) hashtable = ('a, 'b) t
 
   fun make {hash, eq, capacity} =
-    let
-      val data = SeqBasis.tabulate 5000 (0, capacity) (fn _ => NONE)
-    in
-      S {data=data, hash=hash, eq=eq}
+    let val data = SeqBasis.tabulate 5000 (0, capacity) (fn _ => NONE)
+    in S {data = data, hash = hash, eq = eq}
     end
 
   fun bcas (arr, i) (old, new) =
@@ -35,21 +29,20 @@ struct
       val n = Array.length data
 
       fun loop i =
-        if i >= n then loop 0 else
-        let
-          val current = Array.sub (data, i)
-          val rightPlace =
-            case current of
-              NONE => true
-            | SOME (k', _) => eq (k, k')
-        in
-          if not rightPlace then
-            loop (i+1)
-          else if bcas (data, i) (current, SOME (k, v)) then
-            ()
-          else
-            loop i
-        end
+        if i >= n then
+          loop 0
+        else
+          let
+            val current = Array.sub (data, i)
+            val rightPlace =
+              case current of
+                NONE => true
+              | SOME (k', _) => eq (k, k')
+          in
+            if not rightPlace then loop (i + 1)
+            else if bcas (data, i) (current, SOME (k, v)) then ()
+            else loop i
+          end
 
       val start = (hash k) mod (Array.length data)
     in
@@ -62,10 +55,12 @@ struct
       val n = Array.length data
 
       fun loop i =
-        if i >= n then loop 0 else
-        case Array.sub (data, i) of
-          SOME (k', v) => if eq (k, k') then SOME v else loop (i+1)
-        | NONE => NONE
+        if i >= n then
+          loop 0
+        else
+          case Array.sub (data, i) of
+            SOME (k', v) => if eq (k, k') then SOME v else loop (i + 1)
+          | NONE => NONE
 
       val start = (hash k) mod (Array.length data)
     in

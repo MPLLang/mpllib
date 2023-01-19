@@ -10,7 +10,8 @@ struct
 
   structure AS = ArraySlice
 
-  fun take s n = AS.subslice (s, 0, SOME n)
+  fun take s n =
+    AS.subslice (s, 0, SOME n)
   fun drop s n = AS.subslice (s, n, NONE)
 
   val par = ForkJoin.par
@@ -20,17 +21,18 @@ struct
   fun sortInPlace' cmp s t =
     if AS.length s <= 1024 then
       Quicksort.sortInPlace cmp s
-    else let
-      val half = AS.length s div 2
-      val (sl, sr) = (take s half, drop s half)
-      val (tl, tr) = (take t half, drop t half)
-    in
-      (* recursively sort, writing result into t *)
-      par (fn _ => writeSort cmp sl tl, fn _ => writeSort cmp sr tr);
-      (* merge back from t into s *)
-      Merge.writeMerge cmp (tl, tr) s;
-      ()
-    end
+    else
+      let
+        val half = AS.length s div 2
+        val (sl, sr) = (take s half, drop s half)
+        val (tl, tr) = (take t half, drop t half)
+      in
+        (* recursively sort, writing result into t *)
+        par (fn _ => writeSort cmp sl tl, fn _ => writeSort cmp sr tr);
+        (* merge back from t into s *)
+        Merge.writeMerge cmp (tl, tr) s;
+        ()
+      end
 
   (* destructively sort s, writing the result in t *)
   and writeSort cmp s t =
@@ -38,23 +40,22 @@ struct
       ( Util.foreach s (fn (i, x) => AS.update (t, i, x))
       ; Quicksort.sortInPlace cmp t
       )
-    else let
-      val half = AS.length s div 2
-      val (sl, sr) = (take s half, drop s half)
-      val (tl, tr) = (take t half, drop t half)
-    in
-      (* recursively in-place sort sl and sr *)
-      par (fn _ => sortInPlace' cmp sl tl, fn _ => sortInPlace' cmp sr tr);
-      (* merge into t *)
-      Merge.writeMerge cmp (sl, sr) t;
-      ()
-    end
+    else
+      let
+        val half = AS.length s div 2
+        val (sl, sr) = (take s half, drop s half)
+        val (tl, tr) = (take t half, drop t half)
+      in
+        (* recursively in-place sort sl and sr *)
+        par (fn _ => sortInPlace' cmp sl tl, fn _ => sortInPlace' cmp sr tr);
+        (* merge into t *)
+        Merge.writeMerge cmp (sl, sr) t;
+        ()
+      end
 
   fun sortInPlace cmp s =
-    let
-      val t = AS.full (allocate (AS.length s))
-    in
-      sortInPlace' cmp s t
+    let val t = AS.full (allocate (AS.length s))
+    in sortInPlace' cmp s t
     end
 
   fun sort cmp s =

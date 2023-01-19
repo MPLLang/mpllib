@@ -1,15 +1,11 @@
-functor AdjacencyGraph (Vertex: INTEGER) =
+functor AdjacencyGraph(Vertex: INTEGER) =
 struct
 
   structure A = Array
   structure AS = ArraySlice
 
   structure Vertex =
-  struct
-    type t = Vertex.int
-    open Vertex
-    val maxVal = toInt (valOf maxInt)
-  end
+  struct type t = Vertex.int open Vertex val maxVal = toInt (valOf maxInt) end
 
   structure VertexSubset =
   struct
@@ -17,7 +13,8 @@ struct
     type t = h * int
     exception BadRep
 
-    fun empty thresh = (SPARSE (Seq.empty()), thresh)
+    fun empty thresh =
+      (SPARSE (Seq.empty ()), thresh)
 
     fun size (vs, _) =
       case vs of
@@ -38,7 +35,8 @@ struct
             in
               (DENSE dense_rep, threshold)
             end
-          else (SPARSE(Seq.append (ss, s)), threshold)
+          else
+            (SPARSE (Seq.append (ss, s)), threshold)
       | DENSE ss => (plugOnes ss s; (DENSE ss, threshold))
 
     fun sparse_to_dense vs n =
@@ -46,7 +44,8 @@ struct
         SPARSE s =>
           let
             val dense_rep = Seq.tabulate (fn _ => 0) n
-            val _ = Seq.foreach s (fn (_, v) => AS.update (dense_rep, Vertex.toInt v, 1))
+            val _ = Seq.foreach s (fn (_, v) =>
+              AS.update (dense_rep, Vertex.toInt v, 1))
           in
             DENSE dense_rep
           end
@@ -60,10 +59,12 @@ struct
             val (offsets, total) = Seq.scan op+ 0 s
             val sparse = ForkJoin.alloc total
             val _ = Seq.foreach s (fn (i, v) =>
-              if (v=1) then A.update (sparse, Seq.nth offsets i, Vertex.fromInt i)
-              else if (v = 0) then ()
-              else raise BadRep
-              )
+              if (v = 1) then
+                A.update (sparse, Seq.nth offsets i, Vertex.fromInt i)
+              else if (v = 0) then
+                ()
+              else
+                raise BadRep)
           in
             SPARSE (AS.full sparse)
           end
@@ -86,8 +87,10 @@ struct
   end
 
   type vertex = Vertex.t
-  fun vertexNth s v = Seq.nth s (Vertex.toInt v)
-  fun vToWord v = Word64.fromInt (Vertex.toInt v)
+  fun vertexNth s v =
+    Seq.nth s (Vertex.toInt v)
+  fun vToWord v =
+    Word64.fromInt (Vertex.toInt v)
 
   (* offsets, degrees, compact neighbors *)
   type graph = (int Seq.t) * (int Seq.t) * (vertex Seq.t)
@@ -98,10 +101,8 @@ struct
     end
 
   fun neighbors G v =
-    let
-      val (offsets, _, nbrs) = G
-    in
-      Seq.subseq nbrs (vertexNth offsets v, degree G v)
+    let val (offsets, _, nbrs) = G
+    in Seq.subseq nbrs (vertexNth offsets v, degree G v)
     end
 
   fun numVertices G =
@@ -118,30 +119,33 @@ struct
     AS.full (SeqBasis.tabulate 10000 (0, N) (fn i =>
       let
         val off = Seq.nth offsets i
-        val nextOff = if i+1 < N then Seq.nth offsets (i+1) else M
+        val nextOff = if i + 1 < N then Seq.nth offsets (i + 1) else M
         val deg = nextOff - off
       in
         if deg < 0 then
-          raise Fail ("AdjacencyGraph.computeDegrees: vertex " ^ Int.toString i
-                      ^ " has negative degree")
+          raise Fail
+            ("AdjacencyGraph.computeDegrees: vertex " ^ Int.toString i
+             ^ " has negative degree")
         else
           deg
       end))
 
   fun parse chars =
     let
-      fun isNewline i = (Seq.nth chars i = #"\n")
+      fun isNewline i =
+        (Seq.nth chars i = #"\n")
 
       (* Computing newline positions takes up about half the time of parsing...
        * Can we do this faster? *)
-      val nlPos =
-        AS.full (SeqBasis.filter 10000 (0, Seq.length chars) (fn i => i) isNewline)
+      val nlPos = AS.full
+        (SeqBasis.filter 10000 (0, Seq.length chars) (fn i => i) isNewline)
       val numLines = Seq.length nlPos + 1
       fun lineStart i =
-        if i = 0 then 0 else 1 + Seq.nth nlPos (i-1)
+        if i = 0 then 0 else 1 + Seq.nth nlPos (i - 1)
       fun lineEnd i =
         if i = Seq.length nlPos then Seq.length chars else Seq.nth nlPos i
-      fun line i = Seq.subseq chars (lineStart i, lineEnd i - lineStart i)
+      fun line i =
+        Seq.subseq chars (lineStart i, lineEnd i - lineStart i)
 
       val _ =
         if numLines >= 3 then ()
@@ -154,9 +158,9 @@ struct
       fun tryParse thing lineNum =
         let
           fun whoops () =
-            raise Fail ("AdjacencyGraph: line "
-                        ^ Int.toString (lineNum+1)
-                        ^ ": error while parsing " ^ thing)
+            raise Fail
+              ("AdjacencyGraph: line " ^ Int.toString (lineNum + 1)
+               ^ ": error while parsing " ^ thing)
         in
           case (Parse.parseInt (line lineNum) handle _ => whoops ()) of
             SOME x => if x >= 0 then x else whoops ()
@@ -167,14 +171,16 @@ struct
       val numEdges = tryParse "num edges" 2
 
       val _ =
-        if numLines >= numVertices + numEdges + 3 then ()
-        else raise Fail "AdjacencyGraph: not enough offsets and/or edges to parse"
+        if numLines >= numVertices + numEdges + 3 then
+          ()
+        else
+          raise Fail "AdjacencyGraph: not enough offsets and/or edges to parse"
 
-      val offsets = AS.full (SeqBasis.tabulate 1000 (0, numVertices)
-        (fn i => tryParse "edge offset" (3+i)))
+      val offsets = AS.full (SeqBasis.tabulate 1000 (0, numVertices) (fn i =>
+        tryParse "edge offset" (3 + i)))
 
-      val neighbors = AS.full (SeqBasis.tabulate 1000 (0, numEdges)
-        (fn i => Vertex.fromInt (tryParse "neighbor" (3+numVertices+i))))
+      val neighbors = AS.full (SeqBasis.tabulate 1000 (0, numEdges) (fn i =>
+        Vertex.fromInt (tryParse "neighbor" (3 + numVertices + i))))
     in
       (offsets, computeDegrees (numVertices, numEdges, offsets), neighbors)
     end
@@ -204,8 +210,10 @@ struct
           w8 (Word8.fromLarge (w >> 0w8));
           w8 (Word8.fromLarge w)
         end
-      fun wi (x: int) = w64 (Word64.fromInt x)
-      fun wv (v: vertex) = w64 (vToWord v)
+      fun wi (x: int) =
+        w64 (Word64.fromInt x)
+      fun wv (v: vertex) =
+        w64 (vToWord v)
     in
       wi (numVertices g);
       wi (numEdges g);
@@ -236,29 +244,31 @@ struct
           val op<< = Word64.<<
           val op orb = Word64.orb
 
-          val off = i*8
+          val off = i * 8
           val w = Word8.toLarge (Seq.nth bytes off)
-          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off+1)))
-          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off+2)))
-          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off+3)))
-          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off+4)))
-          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off+5)))
-          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off+6)))
-          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off+7)))
+          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off + 1)))
+          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off + 2)))
+          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off + 3)))
+          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off + 4)))
+          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off + 5)))
+          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off + 6)))
+          val w = (w << 0w8) orb (Word8.toLarge (Seq.nth bytes (off + 7)))
         in
           w
         end
 
-      fun ri i = Word64.toInt (r64 i)
-      fun rv i = Vertex.fromInt (ri i)
+      fun ri i =
+        Word64.toInt (r64 i)
+      fun rv i =
+        Vertex.fromInt (ri i)
 
       val numVertices = ri 0
       val numEdges = ri 1
 
-      val offsets =
-        AS.full (SeqBasis.tabulate 10000 (0, numVertices) (fn i => ri (i+2)))
-      val nbrs =
-        AS.full (SeqBasis.tabulate 10000 (0, numEdges) (fn i => rv (i+2+numVertices)))
+      val offsets = AS.full (SeqBasis.tabulate 10000 (0, numVertices) (fn i =>
+        ri (i + 2)))
+      val nbrs = AS.full (SeqBasis.tabulate 10000 (0, numEdges) (fn i =>
+        rv (i + 2 + numVertices)))
     in
       (offsets, computeDegrees (numVertices, numEdges, offsets), nbrs)
     end
@@ -270,8 +280,8 @@ struct
       val h1 = "AdjacencyGraph\n"
       val h2 = "AdjacencyGraphBin\n"
 
-      val actualHeader =
-        TextIO.inputN (file, Int.max (String.size h1, String.size h2))
+      val actualHeader = TextIO.inputN
+        (file, Int.max (String.size h1, String.size h2))
     in
       TextIO.closeIn file;
 
@@ -327,21 +337,23 @@ struct
       fun edgeInts (u, v) = (Vertex.toInt u, Vertex.toInt v)
       val m = Seq.length sorted
       val n =
-        1 + SeqBasis.reduce 10000 Int.max ~1 (0, m)
-            (Int.max o edgeInts o Seq.nth sorted)
+        1
+        +
+        SeqBasis.reduce 10000 Int.max ~1 (0, m)
+          (Int.max o edgeInts o Seq.nth sorted)
 
-      fun k i = Vertex.toInt (#1 (Seq.nth sorted i))
+      fun k i =
+        Vertex.toInt (#1 (Seq.nth sorted i))
 
-      val ends = Seq.tabulate (fn i => if i = n then m else 0) (n+1)
+      val ends = Seq.tabulate (fn i => if i = n then m else 0) (n + 1)
       val _ = ForkJoin.parfor 10000 (0, m) (fn i =>
-        if i = m-1 then
-          AS.update (ends, k i, m)
-        else if k i <> k (i+1) then
-          AS.update (ends, k i, i+1)
+        if i = m - 1 then AS.update (ends, k i, m)
+        else if k i <> k (i + 1) then AS.update (ends, k i, i + 1)
         else ())
       val (offsets, _) = Seq.scan Int.max 0 ends
 
-      fun off i = Seq.nth offsets (i+1) - Seq.nth offsets i
+      fun off i =
+        Seq.nth offsets (i + 1) - Seq.nth offsets i
       val degrees = Seq.tabulate off n
 
       val nbrs = Seq.map #2 sorted
@@ -352,13 +364,15 @@ struct
   fun dedupEdges edges =
     let
       val sorted =
-        Mergesort.sort (fn ((u1,v1), (u2,v2)) =>
-          case Vertex.compare (u1, u2) of
-            EQUAL => Vertex.compare (v1, v2)
-          | other => other) edges
+        Mergesort.sort
+          (fn ((u1, v1), (u2, v2)) =>
+             case Vertex.compare (u1, u2) of
+               EQUAL => Vertex.compare (v1, v2)
+             | other => other) edges
     in
-      AS.full (SeqBasis.filter 5000 (0, Seq.length sorted) (Seq.nth sorted)
-        (fn i => i = 0 orelse Seq.nth sorted (i-1) <> Seq.nth sorted i))
+      AS.full
+        (SeqBasis.filter 5000 (0, Seq.length sorted) (Seq.nth sorted) (fn i =>
+           i = 0 orelse Seq.nth sorted (i - 1) <> Seq.nth sorted i))
     end
 
   fun randSymmGraph n d =
@@ -368,18 +382,18 @@ struct
       fun makeEdge i =
         let
           val u = (2 * i) div d
-          val v = Util.hash i mod (n-1)
+          val v = Util.hash i mod (n - 1)
         in
-          (Vertex.fromInt u, Vertex.fromInt (if v < u then v else v+1))
+          (Vertex.fromInt u, Vertex.fromInt (if v < u then v else v + 1))
         end
 
-      val bothWays = ForkJoin.alloc (2*m)
+      val bothWays = ForkJoin.alloc (2 * m)
       val _ = ForkJoin.parfor 1000 (0, m) (fn i =>
         let
           val (u, v) = makeEdge i
         in
-          A.update (bothWays, 2*i, (u,v));
-          A.update (bothWays, 2*i+1, (v,u))
+          A.update (bothWays, 2 * i, (u, v));
+          A.update (bothWays, 2 * i + 1, (v, u))
         end)
     in
       fromSortedEdges (dedupEdges (AS.full bothWays))

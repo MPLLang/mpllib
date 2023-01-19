@@ -25,12 +25,17 @@
  *)
 structure RadixSort :>
 sig
-  val lsdSort : 'a Seq.t -> ('a Seq.t -> int -> int -> int)
-                -> int -> int -> 'a Seq.t
-  val msdSort : 'a Seq.t -> ('a Seq.t -> int -> int -> int)
-                -> int -> int -> 'a Seq.t
-  val quicksort : 'a Seq.t -> (int -> 'a * 'a -> order) -> int
-                -> 'a Seq.t
+  val lsdSort: 'a Seq.t
+               -> ('a Seq.t -> int -> int -> int)
+               -> int
+               -> int
+               -> 'a Seq.t
+  val msdSort: 'a Seq.t
+               -> ('a Seq.t -> int -> int -> int)
+               -> int
+               -> int
+               -> 'a Seq.t
+  val quicksort: 'a Seq.t -> (int -> 'a * 'a -> order) -> int -> 'a Seq.t
 end =
 struct
 
@@ -60,8 +65,7 @@ struct
       fun msdSort' s pass lo hi =
         if pass = numPasses then
           ForkJoin.parfor AS.GRAIN (0, hi - lo) (fn i =>
-            AS.ASupdate (result, lo + i, AS.nth s i)
-          )
+            AS.ASupdate (result, lo + i, AS.nth s i))
         else
           let
             val (s', offsets) = CountingSort.sort s (bucket s pass) numBuckets
@@ -69,17 +73,18 @@ struct
             ForkJoin.parfor AS.GRAIN (0, numBuckets) (fn i =>
               let
                 val start = AS.nth offsets i
-                val len = if i = numBuckets - 1 then AS.length s' - start
-                          else AS.nth offsets (i + 1) - start
+                val len =
+                  if i = numBuckets - 1 then AS.length s' - start
+                  else AS.nth offsets (i + 1) - start
                 val s'' = AS.subseq s' (start, len)
               in
-                if len = 0 then ()
+                if len = 0 then
+                  ()
                 else if len = 1 then
                   AS.ASupdate (result, lo + start, AS.nth s'' 0)
                 else
                   msdSort' s'' (pass + 1) (lo + start) (lo + start + len)
-              end
-            )
+              end)
           end
       val () = msdSort' s 0 0 n
     in
@@ -87,10 +92,8 @@ struct
     end
 
   fun par3 (a, b, c) =
-    let
-      val ((ar, br), cr) = ForkJoin.par (fn _ => ForkJoin.par (a, b), c)
-    in
-      (ar, br, cr)
+    let val ((ar, br), cr) = ForkJoin.par (fn _ => ForkJoin.par (a, b), c)
+    in (ar, br, cr)
     end
 
   fun quicksort s cmp numPasses =
@@ -99,21 +102,22 @@ struct
       val result = ArraySlice.full (AS.alloc n)
       (* TODO: Change to insertion sort if size of array is small *)
       fun quicksort' s digit lo hi seed =
-        if hi = lo then ()
-        else if hi - lo = 1 then AS.ASupdate (result, lo, AS.nth s 0)
+        if hi = lo then
+          ()
+        else if hi - lo = 1 then
+          AS.ASupdate (result, lo, AS.nth s 0)
         else if digit = numPasses then
           ForkJoin.parfor AS.GRAIN (0, hi - lo) (fn i =>
-            AS.ASupdate (result, lo + i, AS.nth s i)
-          )
+            AS.ASupdate (result, lo + i, AS.nth s i))
         else
           let
             val n' = hi - lo
             val pivot = AS.nth s (seed mod n')
             fun bucket i =
               case cmp digit (AS.nth s i, pivot) of
-                   LESS => 0
-                 | EQUAL => 1
-                 | GREATER => 2
+                LESS => 0
+              | EQUAL => 1
+              | GREATER => 2
             val (s', offsets) = CountingSort.sort s bucket 3
             val mid1 = AS.nth offsets 1
             val mid2 = AS.nth offsets 2
@@ -123,16 +127,25 @@ struct
             val s1 = AS.subseq s' (0, mid1)
             val s2 = AS.subseq s' (mid1, mid2 - mid1)
             val s3 = AS.subseq s' (mid2, n' - mid2)
-            val () = if hi - lo < 1024 then (
-              quicksort' s1 digit lo (lo + mid1) seed1;
-              quicksort' s2 (digit + 1) (lo + mid1) (lo + mid2) seed2;
-              quicksort' s3 digit (lo + mid2) hi seed3
-            ) else
-              let val ((), (), ()) = par3 (
-                fn () => quicksort' s1 digit lo (lo + mid1) seed1,
-                fn () => quicksort' s2 (digit + 1) (lo + mid1) (lo + mid2) seed2,
-                fn () => quicksort' s3 digit (lo + mid2) hi seed3
-              ) in () end
+            val () =
+              if hi - lo < 1024 then
+                ( quicksort' s1 digit lo (lo + mid1) seed1
+                ; quicksort' s2 (digit + 1) (lo + mid1) (lo + mid2) seed2
+                ; quicksort' s3 digit (lo + mid2) hi seed3
+                )
+              else
+                let
+                  val ((), (), ()) =
+                    par3
+                      ( fn () => quicksort' s1 digit lo (lo + mid1) seed1
+                      , fn () =>
+                          quicksort' s2 (digit + 1) (lo + mid1) (lo + mid2)
+                            seed2
+                      , fn () => quicksort' s3 digit (lo + mid2) hi seed3
+                      )
+                in
+                  ()
+                end
           in
             ()
           end

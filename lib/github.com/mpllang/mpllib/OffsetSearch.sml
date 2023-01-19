@@ -8,19 +8,15 @@ end =
 struct
 
   fun indexSearch (start, stop, offset: int -> int) k =
-    case stop-start of
-      0 =>
-        raise Fail "OffsetSearch.indexSearch: should not have hit 0"
-    | 1 =>
-        start
+    case stop - start of
+      0 => raise Fail "OffsetSearch.indexSearch: should not have hit 0"
+    | 1 => start
     | n =>
         let
           val mid = start + (n div 2)
         in
-          if k < offset mid then
-            indexSearch (start, mid, offset) k
-          else
-            indexSearch (mid, stop, offset) k
+          if k < offset mid then indexSearch (start, mid, offset) k
+          else indexSearch (mid, stop, offset) k
         end
 
 end

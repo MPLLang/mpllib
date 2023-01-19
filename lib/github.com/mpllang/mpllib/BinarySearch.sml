@@ -26,15 +26,15 @@ struct
         case hi - lo of
           0 => lo
         | n =>
-          let
-            val mid = lo + n div 2
-            val pivot = ArraySlice.sub (s, mid)
-          in
-            case cmp (x, pivot) of
-              LESS    => loop lo mid
-            | EQUAL   => mid
-            | GREATER => loop (mid+1) hi
-          end
+            let
+              val mid = lo + n div 2
+              val pivot = ArraySlice.sub (s, mid)
+            in
+              case cmp (x, pivot) of
+                LESS => loop lo mid
+              | EQUAL => mid
+              | GREATER => loop (mid + 1) hi
+            end
     in
       loop 0 (ArraySlice.length s)
     end
@@ -46,14 +46,14 @@ struct
         case hi - lo of
           0 => lo
         | n =>
-          let
-            val mid = lo + n div 2
-            val pivot = ArraySlice.sub (s, mid)
-          in
-            case cmp (x, pivot) of
-              GREATER => loop (mid+1) hi
-            | _ => loop lo mid
-          end
+            let
+              val mid = lo + n div 2
+              val pivot = ArraySlice.sub (s, mid)
+            in
+              case cmp (x, pivot) of
+                GREATER => loop (mid + 1) hi
+              | _ => loop lo mid
+            end
     in
       loop 0 (ArraySlice.length s)
     end
@@ -65,15 +65,15 @@ struct
         case hi - lo of
           0 => lo
         | n =>
-          let
-            val mid = lo + n div 2
-            val pivot = ArraySlice.sub (s, mid)
-          in
-            case compareTargetAgainst pivot of
-              LESS    => loop lo mid
-            | EQUAL   => mid
-            | GREATER => loop (mid+1) hi
-          end
+            let
+              val mid = lo + n div 2
+              val pivot = ArraySlice.sub (s, mid)
+            in
+              case compareTargetAgainst pivot of
+                LESS => loop lo mid
+              | EQUAL => mid
+              | GREATER => loop (mid + 1) hi
+            end
     in
       loop 0 (ArraySlice.length s)
     end

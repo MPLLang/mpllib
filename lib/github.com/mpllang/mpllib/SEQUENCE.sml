@@ -68,6 +68,6 @@ sig
 
   val applyIdx: 'a seq -> (int * 'a -> unit) -> unit
 
-  (* val foreach: 'a seq -> (int * 'a -> unit) -> unit
-  val foreachG: int -> 'a seq -> (int * 'a -> unit) -> unit *)
+(* val foreach: 'a seq -> (int * 'a -> unit) -> unit
+val foreachG: int -> 'a seq -> (int * 'a -> unit) -> unit *)
 end

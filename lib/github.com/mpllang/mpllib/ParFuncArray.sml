@@ -43,7 +43,7 @@ struct
 
     fun new cap =
       L {data = ForkJoin.alloc cap, size = 0}
-      (* L {data = SeqBasis.tabulate 10000 (0, cap) (fn _ => NONE), size = 0} *)
+    (* L {data = SeqBasis.tabulate 10000 (0, cap) (fn _ => NONE), size = 0} *)
 
 
     fun push (L {data, size}) (v, x) =
@@ -52,25 +52,22 @@ struct
       in
         if i < Array.length data then
           (* ( Array.update (data, i, SOME (v,x)) *)
-          ( Array.update (data, i, (v,x))
-          ; L {data = data, size = size+1}
-          )
+          (Array.update (data, i, (v, x)); L {data = data, size = size + 1})
         else
           let
             val data' = ForkJoin.alloc (2 * Array.length data)
           in
             ForkJoin.parfor 10000 (0, Array.length data) (fn j =>
-              Array.update (data', j, Array.sub (data, j))
-            );
-(*
-            ForkJoin.parfor 10000 (Array.length data, Array.length data') (fn j =>
-              Array.update (data', j, NONE)
-            );
-*)
+              Array.update (data', j, Array.sub (data, j)));
+            (*
+                        ForkJoin.parfor 10000 (Array.length data, Array.length data') (fn j =>
+                          Array.update (data', j, NONE)
+                        );
+            *)
             (* Array.update (data', i, SOME(v,x)); *)
-            Array.update (data', i, (v,x));
+            Array.update (data', i, (v, x));
             (* print ("grown! " ^ Util.intToString (Array.length data') ^ "\n"); *)
-            L {data = data', size = i+1}
+            L {data = data', size = i + 1}
           end
       end
 
@@ -85,34 +82,39 @@ struct
       if size = 0 then
         NONE
       else
-      let
-        val n = size
-        val _ =
-          if n <= Array.length data then ()
-          else print ("getVersion: data length: " ^ Int.toString (Array.length data) ^ ", current size: " ^ Int.toString n ^ "\n")
-
-(*
-        fun loop i =
-          if i >= n then n
-          else if #1 (valOf (Array.sub (data, i))) <= v then
-            loop (i+1)
-          else
-            i
-            *)
-      in
-        if #1 (*valOf*) (Array.sub (data, n-1)) < v then NONE else
         let
-          val slice = ArraySlice.slice (data, 0, SOME n)
-          val idx =
-            BinarySearch.searchPosition slice
-              (fn (*SOME*) (v', _) => Int.compare (v, v')
-                (* | NONE => raise Fail "ParFuncArray.getVersion found empty slot" *)
-              )
+          val n = size
+          val _ =
+            if n <= Array.length data then
+              ()
+            else
+              print
+                ("getVersion: data length: " ^ Int.toString (Array.length data)
+                 ^ ", current size: " ^ Int.toString n ^ "\n")
+
+        (*
+                fun loop i =
+                  if i >= n then n
+                  else if #1 (valOf (Array.sub (data, i))) <= v then
+                    loop (i+1)
+                  else
+                    i
+                    *)
         in
-          SOME (#2 (*valOf*) (Array.sub (data, idx)))
+          if #1 (*valOf*) (Array.sub (data, n - 1)) < v then
+            NONE
+          else
+            let
+              val slice = ArraySlice.slice (data, 0, SOME n)
+              val idx =
+                BinarySearch.searchPosition slice (fn (*SOME*) (v', _) =>
+                  Int.compare (v, v')(* | NONE => raise Fail "ParFuncArray.getVersion found empty slot" *) )
+            in
+              SOME (#2 (*valOf*) (Array.sub (data, idx)))
+            end
         end
-      end
-      handle e => (print ("error during getVersion: " ^ exnMessage e ^ "\n"); raise e)
+        handle e =>
+          (print ("error during getVersion: " ^ exnMessage e ^ "\n"); raise e)
 
   end
 
@@ -144,17 +146,17 @@ struct
     if i < 0 orelse i >= length farr then
       raise Subscript
     else
-    let
-      val (v, AD {vr, data, logs}) = farr
-      val guess = Array.sub (data, i)
-    in
-      if v = !vr then
-        guess
-      else
-        case Log.getVersion (Array.sub (logs, i)) v of
-          NONE => guess
-        | SOME x => x
-    end
+      let
+        val (v, AD {vr, data, logs}) = farr
+        val guess = Array.sub (data, i)
+      in
+        if v = !vr then
+          guess
+        else
+          case Log.getVersion (Array.sub (logs, i)) v of
+            NONE => guess
+          | SOME x => x
+      end
 
 
   fun bcas r (old, new) =
@@ -176,31 +178,29 @@ struct
     if i < 0 orelse i > length farr then
       raise Subscript
     else
-    let
-      val (v, ad as AD {vr, data, logs}) = farr
-      val currv = !vr
-    in
-      if
-        currv = v andalso
-        currv < Array.length data andalso
-        bcas vr (v, v+1)
-      then
-        (* We successfully claimed access for updating the data *)
-        ( updateLog (logs, i) (v, Array.sub (data, i))
-        ; Array.update (data, i, x)
-        ; (v+1, ad)
-        )
-      else (* We have to rebuid *)
       let
-        val n = Array.length data
-        (* val _ = print ("rebuilding " ^ Util.intToString n ^ "\n") *)
-        val data' = SeqBasis.tabulate 1000 (0, n) (fn i => sub (farr, i))
-        val logs' = SeqBasis.tabulate 5000 (0, n) (fn _ => Log.new 1)
+        val (v, ad as AD {vr, data, logs}) = farr
+        val currv = !vr
       in
-        Array.update (data', i, x);
-        (0, AD {vr = ref 0, data = data', logs = logs'})
+        if
+          currv = v andalso currv < Array.length data andalso bcas vr (v, v + 1)
+        then
+          (* We successfully claimed access for updating the data *)
+          ( updateLog (logs, i) (v, Array.sub (data, i))
+          ; Array.update (data, i, x)
+          ; (v + 1, ad)
+          )
+        else (* We have to rebuid *)
+          let
+            val n = Array.length data
+            (* val _ = print ("rebuilding " ^ Util.intToString n ^ "\n") *)
+            val data' = SeqBasis.tabulate 1000 (0, n) (fn i => sub (farr, i))
+            val logs' = SeqBasis.tabulate 5000 (0, n) (fn _ => Log.new 1)
+          in
+            Array.update (data', i, x);
+            (0, AD {vr = ref 0, data = data', logs = logs'})
+          end
       end
-    end
 
 
   fun tabulate (n, f) =
@@ -210,10 +210,8 @@ struct
       val logs = SeqBasis.tabulate 5000 (0, n) (fn _ => Log.new 1)
     in
       ForkJoin.parfor 1000 (0, n) (fn i =>
-        let
-        in
-          Array.update (data, i, f i)
-          (* updateLog (logs, i) (version, x) *)
+        let in Array.update (data, i, f i)
+        (* updateLog (logs, i) (version, x) *)
         end);
 
       (version, AD {vr = ref version, data = data, logs = logs})

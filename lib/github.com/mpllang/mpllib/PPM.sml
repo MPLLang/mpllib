@@ -36,12 +36,12 @@ struct
     if i < 0 orelse i >= height orelse j < 0 orelse j >= width then
       raise Subscript
     else
-      Seq.nth data (i*width + j)
+      Seq.nth data (i * width + j)
 
-  fun subimage {topleft=(i1,j1), botright=(i2,j2)} image =
+  fun subimage {topleft = (i1, j1), botright = (i2, j2)} image =
     let
-      val w = j2-j1
-      val h = i2-i1
+      val w = j2 - j1
+      val h = i2 - i1
 
       fun newElem k =
         let
@@ -51,23 +51,20 @@ struct
           elem image (i1 + i, j1 + j)
         end
     in
-      { width = w
-      , height = h
-      , data = Seq.tabulate newElem (w * h)
-      }
+      {width = w, height = h, data = Seq.tabulate newElem (w * h)}
     end
 
-  fun replace {topleft=(i1,j1), botright=(i2,j2)} image subimage =
+  fun replace {topleft = (i1, j1), botright = (i2, j2)} image subimage =
     let
       fun newElem k =
         let
           val i = k div (#width image)
           val j = k mod (#width image)
         in
-          if i1 <= i andalso i < i2 andalso
-             j1 <= j andalso j < j2
-          then elem subimage (i-i1, j-j1)
-          else elem image (i, j)
+          if i1 <= i andalso i < i2 andalso j1 <= j andalso j < j2 then
+            elem subimage (i - i1, j - j1)
+          else
+            elem image (i, j)
         end
     in
       { width = #width image
@@ -79,8 +76,7 @@ struct
   (* utilities... *)
 
   fun niceify str =
-    if String.size str <= 10 then str
-    else String.substring (str, 0, 7) ^ "..."
+    if String.size str <= 10 then str else String.substring (str, 0, 7) ^ "..."
 
   (* ============================== P3 format ============================== *)
 
@@ -90,25 +86,21 @@ struct
       (* val numToks = Seq.length tokens *)
       val (numToks, tokRange) = Tokenize.tokenRanges Char.isSpace contents
       fun tok i =
-        let
-          val (lo, hi) = tokRange i
-        in
-          Seq.subseq contents (lo, hi-lo)
+        let val (lo, hi) = tokRange i
+        in Seq.subseq contents (lo, hi - lo)
         end
       fun strTok i =
         Parse.parseString (tok i)
 
       val filetype = strTok 0
-      val _ =
-        if filetype = "P3" then ()
-        else raise Fail "should not happen"
+      val _ = if filetype = "P3" then () else raise Fail "should not happen"
 
       fun intTok thingName i =
         let
           fun err () =
-            raise Fail ("error parsing .ppm file: cannot parse "
-                        ^ thingName ^ " from '"
-                        ^ niceify (strTok i) ^ "'")
+            raise Fail
+              ("error parsing .ppm file: cannot parse " ^ thingName ^ " from '"
+               ^ niceify (strTok i) ^ "'")
         in
           case Parse.parseInt (tok i) of
             NONE => err ()
@@ -125,23 +117,25 @@ struct
         if numToks = numChannels + 4 then ()
         else raise Fail "error parsing .ppm file: too few color channels"
 
-      fun normalize (c : int) =
+      fun normalize (c: int) =
         Real.ceil ((Real.fromInt c / Real.fromInt resolution) * 255.0)
 
       fun chan i =
         let
           val c = intTok "channel" (i + 4)
           val _ =
-            if c <= resolution then ()
-            else raise Fail ("error parsing .ppm file: channel value "
-                             ^ Int.toString c ^ " greater than resolution "
-                             ^ Int.toString resolution)
+            if c <= resolution then
+              ()
+            else
+              raise Fail
+                ("error parsing .ppm file: channel value " ^ Int.toString c
+                 ^ " greater than resolution " ^ Int.toString resolution)
         in
           Word8.fromInt (normalize c)
         end
 
       fun pixel i =
-        {red = chan (3*i), green = chan (3*i + 1), blue = chan (3*i + 2)}
+        {red = chan (3 * i), green = chan (3 * i + 1), blue = chan (3 * i + 2)}
     in
       { width = width
       , height = height
@@ -154,17 +148,12 @@ struct
   fun parse6 contents =
     let
       val filetype = Parse.parseString (Seq.subseq contents (0, 2))
-      val _ =
-        if filetype = "P6" then ()
-        else raise Fail "should not happen"
+      val _ = if filetype = "P6" then () else raise Fail "should not happen"
 
       fun findFirst p i =
-        if i >= Seq.length contents then
-          NONE
-        else if p (Seq.nth contents i) then
-          SOME i
-        else
-          findFirst p (i+1)
+        if i >= Seq.length contents then NONE
+        else if p (Seq.nth contents i) then SOME i
+        else findFirst p (i + 1)
 
       fun findToken start =
         case findFirst (not o Char.isSpace) start of
@@ -178,28 +167,31 @@ struct
       fun chompToken start =
         case findToken start of
           NONE => NONE
-        | SOME (i, j) => SOME (Seq.subseq contents (i, j-i), j)
+        | SOME (i, j) => SOME (Seq.subseq contents (i, j - i), j)
 
       fun chompInt thingName i =
         case chompToken i of
           NONE => raise Fail ("error parsing .ppm file: missing " ^ thingName)
         | SOME (s, j) =>
             case Parse.parseInt s of
-              NONE => raise Fail ("error parsing .ppm file: cannot parse "
-                                  ^ thingName ^ " from '"
-                                  ^ niceify (Parse.parseString s) ^ "'")
+              NONE =>
+                raise Fail
+                  ("error parsing .ppm file: cannot parse " ^ thingName
+                   ^ " from '" ^ niceify (Parse.parseString s) ^ "'")
             | SOME x =>
-                if x >= 0 then (x, j)
-                else raise Fail ("error parsing .ppm file: cannot parse "
-                                 ^ thingName ^ " from '"
-                                 ^ niceify (Parse.parseString s) ^ "'")
+                if x >= 0 then
+                  (x, j)
+                else
+                  raise Fail
+                    ("error parsing .ppm file: cannot parse " ^ thingName
+                     ^ " from '" ^ niceify (Parse.parseString s) ^ "'")
 
       val cursor = 2
       val _ =
-        if Seq.length contents > 2 andalso
-           Char.isSpace (Seq.nth contents 2)
-        then ()
-        else raise Fail "error parsing .ppm file: unexpected format"
+        if Seq.length contents > 2 andalso Char.isSpace (Seq.nth contents 2) then
+          ()
+        else
+          raise Fail "error parsing .ppm file: unexpected format"
 
       val (width, cursor) = chompInt "width" cursor
       val (height, cursor) = chompInt "height" cursor
@@ -208,8 +200,10 @@ struct
       val numChannels = 3 * width * height
 
       val _ =
-        if resolution = 255 then ()
-        else raise Fail "error parsing .ppm file: P6 max color value must be 255"
+        if resolution = 255 then
+          ()
+        else
+          raise Fail "error parsing .ppm file: P6 max color value must be 255"
 
       val cursor =
         case findFirst (not o Char.isSpace) cursor of
@@ -224,7 +218,7 @@ struct
         Word8.fromInt (Char.ord (Seq.nth contents (cursor + i)))
 
       fun pixel i =
-        {red = chan (3*i), green = chan (3*i + 1), blue = chan (3*i + 2)}
+        {red = chan (3 * i), green = chan (3 * i + 1), blue = chan (3 * i + 2)}
     in
       { width = width
       , height = height
@@ -252,22 +246,17 @@ struct
       val file = TextIO.openOut filepath
 
       fun dump str = TextIO.output (file, str)
-      fun dumpChan c = TextIO.output1 (file, Char.chr (Word8.toInt c))
+      fun dumpChan c =
+        TextIO.output1 (file, Char.chr (Word8.toInt c))
       fun dumpPx i j =
-        let
-          val {red, green, blue} = elem image (i, j)
-        in
-          (dumpChan red;
-           dumpChan green;
-           dumpChan blue)
+        let val {red, green, blue} = elem image (i, j)
+        in (dumpChan red; dumpChan green; dumpChan blue)
         end
 
       fun dumpLoop i j =
         if i >= #height image then ()
-        else if j >= #width image then
-          dumpLoop (i+1) 0
-        else
-          (dumpPx i j; dumpLoop i (j+1))
+        else if j >= #width image then dumpLoop (i + 1) 0
+        else (dumpPx i j; dumpLoop i (j + 1))
     in
       dump "P6 ";
       dump (Int.toString (#width image) ^ " ");

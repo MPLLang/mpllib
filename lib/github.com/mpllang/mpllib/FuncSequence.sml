@@ -17,28 +17,29 @@ struct
   type 'a t = int * int * (int -> 'a)
   type 'a seq = 'a t
 
-  fun empty () = (0, 0, fn _ => raise Subscript)
+  fun empty () =
+    (0, 0, fn _ => raise Subscript)
   fun length (i, j, _) = j - i
-  fun nth (i, _, f) k = f (i+k)
-  fun take (i, _, f) k = (i, i+k, f)
-  fun drop (i, j, f) k = (i+k, j, f)
+  fun nth (i, _, f) k =
+    f (i + k)
+  fun take (i, _, f) k = (i, i + k, f)
+  fun drop (i, j, f) k = (i + k, j, f)
 
   fun tabulate f n = (0, n, f)
 
   fun iterate f b s =
-    if length s = 0 then b
-    else iterate f (f (b, nth s 0)) (drop s 1)
+    if length s = 0 then b else iterate f (f (b, nth s 0)) (drop s 1)
 
   fun reduce f b s =
     case length s of
       0 => b
     | 1 => nth s 0
-    | n => let
-             val half = n div 2
-             val (l, r) =
-               ForkJoin.par (fn _ => reduce f b (take s half),
-                             fn _ => reduce f b (drop s half))
-           in
-             f (l, r)
-           end
+    | n =>
+        let
+          val half = n div 2
+          val (l, r) = ForkJoin.par (fn _ => reduce f b (take s half), fn _ =>
+            reduce f b (drop s half))
+        in
+          f (l, r)
+        end
 end

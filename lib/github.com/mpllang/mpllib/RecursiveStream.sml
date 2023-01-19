@@ -15,38 +15,28 @@ struct
     * streams require at least an index as state, so we can save storing one
     * piece of state by instead providing this only as needed.
     *)
-  datatype 'a stream = S of int -> 'a * ('a stream)
+  datatype 'a stream =
+    S of int -> 'a * ('a stream)
   type 'a t = 'a stream
 
   fun nth stream i =
     let
       fun loop j (S g) =
-        let
-          val (first, rest) = g j
-        in
-          if j >= i then first else loop (j+1) rest
+        let val (first, rest) = g j
+        in if j >= i then first else loop (j + 1) rest
         end
     in
       loop 0 stream
     end
 
-  fun tabulate f = S (fn i => (f i, tabulate f))
+  fun tabulate f =
+    S (fn i => (f i, tabulate f))
 
   fun map f (S g) =
-    S (fn i =>
-      let
-        val (first, rest) = g i
-      in
-        (f first, map f rest)
-      end)
+    S (fn i => let val (first, rest) = g i in (f first, map f rest) end)
 
   fun mapIdx f (S g) =
-    S (fn i =>
-      let
-        val (first, rest) = g i
-      in
-        (f (i, first), mapIdx f rest)
-      end)
+    S (fn i => let val (first, rest) = g i in (f (i, first), mapIdx f rest) end)
 
   fun zipWith f (S g, S h) =
     S (fn i =>
@@ -78,13 +68,8 @@ struct
   fun applyIdx (n, stream) f =
     let
       fun loop i (S g) =
-        if i >= n then () else
-        let
-          val (first, rest) = g i
-        in
-          f (i, first);
-          loop (i+1) rest
-        end
+        if i >= n then ()
+        else let val (first, rest) = g i in f (i, first); loop (i + 1) rest end
     in
       loop 0 stream
     end
@@ -92,13 +77,15 @@ struct
   fun iterate f z (n, stream) =
     let
       fun loop acc i (S g) =
-        if i >= n then acc else
-        let
-          val (first, rest) = g i
-          val acc' = f (acc, first)
-        in
-          loop acc' (i+1) rest
-        end
+        if i >= n then
+          acc
+        else
+          let
+            val (first, rest) = g i
+            val acc' = f (acc, first)
+          in
+            loop acc' (i + 1) rest
+          end
     in
       loop z 0 stream
     end
@@ -122,10 +109,9 @@ struct
             case f first of
               SOME y =>
                 ( Array.update (data, next, y)
-                ; loop (data, next+1) (i+1) rest
+                ; loop (data, next + 1) (i + 1) rest
                 )
-            | NONE =>
-                loop (data, next) (i+1) rest
+            | NONE => loop (data, next) (i + 1) rest
           end
 
         else if next >= Array.length data then
@@ -141,19 +127,17 @@ struct
 
 
   fun makeBlockStreams
-        { blockSize: int
-        , numChildren: int
-        , offset: int -> int
-        , getElem: int -> int -> 'a
-        } =
+    { blockSize: int
+    , numChildren: int
+    , offset: int -> int
+    , getElem: int -> int -> 'a
+    } =
     let
       fun getBlock blockIdx =
         let
           fun advanceUntilNonEmpty i =
-            if i >= numChildren orelse offset i <> offset (i+1) then
-              i
-            else
-              advanceUntilNonEmpty (i+1)
+            if i >= numChildren orelse offset i <> offset (i + 1) then i
+            else advanceUntilNonEmpty (i + 1)
 
           val lo = blockIdx * blockSize
 
@@ -163,10 +147,8 @@ struct
                 val j = lo + idx - offset i
                 val elem = getElem i j
               in
-                if offset i + j + 1 < offset (i+1) then
-                  (elem, walk i)
-                else
-                  (elem, walk (advanceUntilNonEmpty (i+1)))
+                if offset i + j + 1 < offset (i + 1) then (elem, walk i)
+                else (elem, walk (advanceUntilNonEmpty (i + 1)))
               end)
 
           val firstOuterIdx =

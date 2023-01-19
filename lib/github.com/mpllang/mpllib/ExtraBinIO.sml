@@ -68,6 +68,6 @@ struct
     end
 
   fun wrgb file ({red, green, blue}: Color.pixel) =
-    ( w8 file red; w8 file green; w8 file blue )
+    (w8 file red; w8 file green; w8 file blue)
 
 end

@@ -26,18 +26,17 @@ struct
           } *)
 
       fun copyToResult i n =
-        Word8ArraySlice.appi (fn (j, b) =>
-          Unsafe.Array.update (result, i+j, readByte b))
+        Word8ArraySlice.appi
+          (fn (j, b) => Unsafe.Array.update (result, i + j, readByte b))
           (Word8ArraySlice.slice (buffer, 0, SOME n))
 
       fun dumpFrom i =
-        if i >= length then () else
-        let
-          val bytesRead = readArr (file, Word8ArraySlice.full buffer)
-        in
-          copyToResult i bytesRead;
-          dumpFrom (i + bytesRead)
-        end
+        if i >= length then
+          ()
+        else
+          let val bytesRead = readArr (file, Word8ArraySlice.full buffer)
+          in copyToResult i bytesRead; dumpFrom (i + bytesRead)
+          end
     in
       dumpFrom 0;
       close file;
@@ -54,7 +53,7 @@ struct
     let
       val chars = contentsSeq filename
     in
-      CharVector.tabulate (ArraySlice.length chars,
-        fn i => ArraySlice.sub (chars, i))
+      CharVector.tabulate (ArraySlice.length chars, fn i =>
+        ArraySlice.sub (chars, i))
     end
 end
