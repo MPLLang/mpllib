@@ -34,7 +34,7 @@ struct
   end
 *)
 
-  fun delaySequential D a data =
+  fun delaySequential D (a : real) data =
     let
       val n = Seq.length data
       val output = ForkJoin.alloc n
@@ -69,7 +69,7 @@ struct
    * at row i, column j.
    *)
   fun delay' D alpha data =
-    if Seq.length data <= combGran then
+     if Seq.length data <= combGran then
       delaySequential D alpha data
     else
     let

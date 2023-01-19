@@ -578,7 +578,7 @@ struct
       (fromInt colorTableSize andb 0wx7)
     end
 
-  fun writeMany path delay palette {width, height, numImages, getImage} =
+  fun writeMany path delay ({colors,...}:Palette.t) {width, height, numImages, getImage} =
     if numImages <= 0 then
       err "Must be at least one image"
     else
@@ -586,7 +586,7 @@ struct
       val width16 = checkToWord16 "width" width
       val height16 = checkToWord16 "height" height
 
-      val numberOfColors = Seq.length (#colors palette)
+      val numberOfColors = Seq.length colors
 
       val _ =
         if numberOfColors <= 256 then ()
@@ -640,7 +640,7 @@ struct
        *)
 
       Util.for (0, numberOfColors) (fn i =>
-        wrgb (Seq.nth (#colors palette) i));
+        wrgb (Seq.nth colors i));
 
       Util.for (numberOfColors, Util.boundPow2 numberOfColors) (fn _ =>
         wrgb Color.black);
