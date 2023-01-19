@@ -1,0 +1,69 @@
+Group is 
+  $/basis.cm
+  compat/smlnj.cm
+
+  CommandLineArgs.sml
+  Util.sml
+  SeqBasis.sml
+
+  SEQUENCE.sml
+  ArraySequence.sml
+  Seq.sml
+
+  OffsetSearch.sml
+  STREAM.sml
+  DelayedStream.sml
+  RecursiveStream.sml
+  DelayedSeq.sml
+  OldDelayedSeq.sml
+
+  FuncSequence.sml
+  BinarySearch.sml
+  Merge.sml
+  StableMerge.sml
+  StableSort.sml
+  Quicksort.sml
+  Mergesort.sml
+  TreeMatrix.sml
+  AugMap.sml
+
+  PureSeq.sml
+
+  SampleSort.sml
+  CountingSort.sml
+  RadixSort.sml
+  Shuffle.sml
+
+  Tokenize.sml
+  FindFirst.sml
+  Parse.sml
+  ParseFile.sml
+  AdjacencyGraph.sml
+  AdjacencyInt.sml
+
+  CheckSort.sml
+
+  Geometry3D.sml
+  Geometry2D.sml
+  Topology2D.sml
+
+  NearestNeighbors.sml
+
+  Color.sml
+  PPM.sml
+  ExtraBinIO.sml
+  GIF.sml
+  NewWaveIO.sml
+  Signal.sml
+
+  MeshToImage.sml
+
+  MkGrep.sml
+
+  Hashset.sml
+  Hashtable.sml
+
+  ParFuncArray.sml
+  ChunkedTreap.sml
+
+  Benchmark.sml
