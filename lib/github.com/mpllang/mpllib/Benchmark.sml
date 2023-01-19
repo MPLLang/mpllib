@@ -20,7 +20,7 @@ struct
 
   fun run msg f =
     let
-      val warmup = Time.fromReal (CommandLineArgs.parseReal "warmup" 0.0)
+      val warmup = Time.fromReal (Real.toLarge (CommandLineArgs.parseReal "warmup" 0.0))
       val rep = CommandLineArgs.parseInt "repeat" 1
       val _ =
         if rep >= 1 then ()
@@ -54,7 +54,7 @@ struct
       val endToEnd = Time.- (t1, t0)
 
       val total = List.foldl Time.+ Time.zeroTime tms
-      val avg = Time.toReal total / (Real.fromInt rep)
+      val avg = (Real.fromLarge IEEEReal.TO_NEAREST (Time.toReal total)) / (Real.fromInt rep)
     in
       print "\n";
       print ("average " ^ Real.fmt (StringCvt.FIX (SOME 4)) avg ^ "s\n");
