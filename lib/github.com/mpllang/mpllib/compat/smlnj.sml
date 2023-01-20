@@ -16,6 +16,15 @@ struct
   val unsafeFromArray: 'a array -> 'a vector = Unsafe.cast
 end
 
+structure MLton:
+sig
+  val eq: 'a * 'a -> bool
+end =
+struct
+  fun eq (x: 'a , y: 'a) =
+    Unsafe.cast x = Unsafe.cast y
+end
+
 structure Concurrency =
 struct
   val numberOfProcessors = 1
@@ -24,7 +33,7 @@ struct
     let
       val current = !r
     in
-      if x = current then r := y else ();
+      if MLton.eq (x, current) then r := y else ();
       current
     end
 
@@ -32,7 +41,7 @@ struct
     let
       val current = Array.sub (a, i)
     in
-      if x = current then Array.update (a, i, y) else ();
+      if MLton.eq (x, current) then Array.update (a, i, y) else ();
       current
     end
 end

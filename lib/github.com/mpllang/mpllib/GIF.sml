@@ -574,7 +574,7 @@ struct
       (fromInt colorTableSize andb 0wx7)
     end
 
-  fun writeMany path delay palette {width, height, numImages, getImage} =
+  fun writeMany path delay (palette: Palette.t) {width, height, numImages, getImage} =
     if numImages <= 0 then
       err "Must be at least one image"
     else
@@ -681,8 +681,8 @@ struct
 
           w8 0wx2C; (* image separator *)
 
-          w16l 0w0;  (* image left *)
-          w16l 0w0;  (* image top *)
+          w16l (Word16.fromInt 0);  (* image left *)
+          w16l (Word16.fromInt 0);  (* image top *)
 
           w16l width16;  (* image width *)
           w16l height16; (* image height *)

@@ -1,4 +1,5 @@
 Group is
   $/basis.cm
   PosixReadFile.smlnj.sml
+  Word16.smlnj.sml
   smlnj.sml

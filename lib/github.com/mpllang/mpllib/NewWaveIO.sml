@@ -232,12 +232,12 @@ struct
        * fmt subchunk, 24 bytes *)
       w32b fmtId;
       w32l 0w16;    (* 16 remaining bytes in subchunk *)
-      w16l 0w1;     (* audio format PCM = 1 *)
-      w16l 0w1;     (* 1 channel (mono) *)
+      w16l (Word16.fromInt 1);     (* audio format PCM = 1 *)
+      w16l (Word16.fromInt 1);     (* 1 channel (mono) *)
       w32l srw;     (* sample rate *)
       w32l (srw * 0w2); (* "byte rate" = sampleRate * numChannels * bytesPerSample *)
-      w16l 0w2;     (* "block align" = numChannels * bytesPerSample *)
-      w16l 0w16;    (* bits per sample *)
+      w16l (Word16.fromInt 2);     (* "block align" = numChannels * bytesPerSample *)
+      w16l (Word16.fromInt 16);    (* bits per sample *)
 
       (* ============================
        * data subchunk: rest of file *)
