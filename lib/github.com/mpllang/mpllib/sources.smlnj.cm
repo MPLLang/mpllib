@@ -60,10 +60,10 @@ Group is
 
   MkGrep.sml
 
-  Hashset.sml
-  Hashtable.sml
+  (* Hashset.sml *)
+  (* Hashtable.sml *)
 
-  ParFuncArray.sml
+  (* ParFuncArray.sml *)
   ChunkedTreap.sml
 
   Benchmark.sml

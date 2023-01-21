@@ -27,16 +27,18 @@ $ smlpkg add github.com/mpllang/mpllib
 $ smlpkg sync
 ```
 
-And then add one of the following `.mlb` source files to your project.
+And then add one of the following `.mlb` or `.cm` source files to your project.
 
 ## Library sources
 
-Two source files:
+Three source files:
 
 * `lib/github.com/mpllang/mpllib/sources.mpl.mlb`
 * `lib/github.com/mpllang/mpllib/sources.mlton.mlb`
+* `lib/github.com/mpllang/mpllib/sources.smlnj.cm`
 
-The former is for use with MPL, the latter with MLton.
+The names of these files indicate which compiler they are intended to be
+used with: MPL, MLton, or SML/NJ.
 
 ## Documentation
 
@@ -99,7 +101,7 @@ Augmented Maps
 * functor `PAM`
 
 Collections
-* structure `Hashset`
-* structure `Hashtable`
+* structure `Hashset` (for MPL/MLton only; not available for SML/NJ)
+* structure `Hashtable` (for MPL/MLton only; not available for SML/NJ)
 * functor `ChunkedTreap`
-* structure `ParFuncArray`
+* structure `ParFuncArray` (for MPL/MLton only; not available for SML/NJ)
