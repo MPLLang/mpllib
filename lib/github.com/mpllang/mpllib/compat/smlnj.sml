@@ -9,6 +9,9 @@ struct
   fun parfor (g:int) (lo, hi) (f: int -> unit) =
     if lo >= hi then () else (f lo; parfor g (lo+1, hi) f)
   fun alloc n : 'a array = Unsafe.Array.create (n, Unsafe.cast ())
+  (* fun alloc n : 'a array = Unsafe.cast (Array.array (n, ref ())) *)
+  (* fun alloc n : 'a array = Unsafe.Array.create (n, Unsafe.cast (ref ())) *)
+  (* fun alloc n : 'a array = Unsafe.Array.create (n, Unsafe.cast 0) *)
 end
 
 structure VectorExtra =

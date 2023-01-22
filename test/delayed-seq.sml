@@ -20,9 +20,6 @@ struct
 end
 
 structure CLA = CommandLineArgs
-val n = CLA.parseInt "n" 1000000
-val numTests = CLA.parseInt "num-tests" 10
-val impl = CLA.parseString "impl" "old"
 
 functor Tester(
   structure S: SEQUENCE
@@ -31,6 +28,9 @@ functor Tester(
 struct
   structure ExS = Ex(S)
   structure ExRef = Ex(Seq)
+
+  val n = CLA.parseInt "n" 1000000
+  val numTests = CLA.parseInt "num-tests" 10
 
   fun testSumNonNegative seed =
     let
@@ -72,7 +72,12 @@ end
 structure TestDS = Tester(structure S = DelayedSeq val sName = "DelayedSeq")
 structure TestODS = Tester(structure S = OldDelayedSeq val sName = "OldDelayedSeq")
 
-val _ =
-  case impl of
-    "old" => TestODS.doTests ()
-  | _ => TestDS.doTests ()
+structure Main =
+struct
+  val impl = CLA.parseString "impl" "new"
+
+  val _ =
+    case impl of
+      "old" => TestODS.doTests ()
+    | _ => TestDS.doTests ()
+end
