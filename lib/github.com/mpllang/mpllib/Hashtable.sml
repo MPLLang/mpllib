@@ -68,15 +68,18 @@ struct
       val n = Array.length data
 
       fun loop i =
-        if i >= n then loop 0
-        else
-          case Array.sub (data, i) of
+        if i >= n then loop 0 else
+        let
+          val current = Array.sub (data, i)
+        in
+          case current of
             NONE =>
               if (bcas (data, i) (current, SOME (k, v))) then ()
               else loop i
           | SOME (k', _) =>
               if eq (k, k') then ()
               else loop (i + 1)
+        end
 
       val start = (hash k) mod (Array.length data)
     in
