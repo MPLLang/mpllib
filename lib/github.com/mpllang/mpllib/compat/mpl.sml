@@ -54,17 +54,7 @@ struct
 
 end
 
-structure WriteFile =
-struct
-  fun dump (filename: string) (contents: string) =
-    let
-      open Posix.FileSys
-      val f = creat (filename, S.iwoth)
-      val contentslice = (Word8VectorSlice.full (Byte.stringToBytes contents))
-    in
-     Posix.IO.writeVec (f, contentslice); ()
-    end
-end
+structure WriteFile = PosixWriteFile
 
 structure GCStats:
 sig

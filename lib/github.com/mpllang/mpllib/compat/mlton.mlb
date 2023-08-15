@@ -11,11 +11,13 @@ local
   end
 
   PosixReadFile.sml
+  PosixWriteFile.sml
   mlton.sml
 in
   structure ForkJoin
   structure Concurrency
   structure ReadFile
+  structure WriteFile
   structure GCStats
   structure MLton
   structure VectorExtra
