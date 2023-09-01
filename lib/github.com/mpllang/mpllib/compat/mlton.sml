@@ -42,6 +42,8 @@ end
 
 structure ReadFile = PosixReadFile
 
+structure WriteFile = PosixWriteFile
+
 structure GCStats:
 sig
   val report: unit -> unit

@@ -54,6 +54,8 @@ struct
 
 end
 
+structure WriteFile = PosixWriteFile
+
 structure GCStats:
 sig
   val report: unit -> unit

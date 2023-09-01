@@ -9,12 +9,13 @@ local
   in
     structure VectorExtra = Vector
   end
-
+  PosixWriteFile.sml
   mpl.sml
 in
   structure ForkJoin
   structure Concurrency
   structure ReadFile
+  structure WriteFile
   structure GCStats
   structure MLton
   structure VectorExtra
