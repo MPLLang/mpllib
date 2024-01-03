@@ -30,7 +30,7 @@ struct
 
 
   val blockSizeFactor =
-    CommandLineArgs.parseReal "MPLLib_StableMergeLowSpan_blockSizeFactor" 100.0
+    CommandLineArgs.parseReal "MPLLib_StableMergeLowSpan_blockSizeFactor" 1000.0
 
 
   fun log2 x =
@@ -52,17 +52,11 @@ struct
           val (i1, i2) = split_count_take_max_left cmp (s1, s2) start
           val (j1, j2) = split_count_take_max_left cmp (s1, s2) stop
 
-          (* val _ = print
-            ("block " ^ Int.toString b ^ " start " ^ Int.toString start
-             ^ " stop " ^ Int.toString stop ^ " i1 " ^ Int.toString i1 ^ " j1 "
-             ^ Int.toString j1 ^ " i2 " ^ Int.toString i2 ^ " j2 "
-             ^ Int.toString j2 ^ "\n") *)
-
           val piece1 = slice_idxs s1 (i1, j1)
           val piece2 = slice_idxs s2 (i2, j2)
           val piece_output = slice_idxs output (start, stop)
         in
-          StableMerge.writeMergeSerial cmp (piece1, piece2) piece_output
+          StableMerge.writeMerge cmp (piece1, piece2) piece_output
         end)
     end
 
