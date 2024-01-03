@@ -30,7 +30,7 @@ struct
 
 
   val blockSizeFactor =
-    CommandLineArgs.parseReal "MPLLib_MergeLowSpan_blockSizeFactor" 100.0
+    CommandLineArgs.parseReal "MPLLib_StableMergeLowSpan_blockSizeFactor" 100.0
 
 
   fun log2 x =
