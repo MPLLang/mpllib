@@ -24,6 +24,8 @@ FuncSequence.sml
 BinarySearch.sml
 Merge.sml
 StableMerge.sml
+DoubleBinarySearch.sml
+StableMergeLowSpan.sml
 StableSort.sml
 Quicksort.sml
 Mergesort.sml

@@ -1,6 +1,12 @@
 stable-merge
 stable-merge.mlton
 
+stable-merge-low-span
+stable-merge-low-span.mlton
+
+merge-bench
+merge-bench.mlton
+
 stable-sort
 stable-sort.mlton
 
