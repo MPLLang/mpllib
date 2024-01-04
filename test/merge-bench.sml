@@ -19,10 +19,12 @@ val merger =
         ("unknown -impl " ^ impl
          ^ "; valid options are: merge, stable-merge, stable-merge-low-span")
 
-val input1 = Mergesort.sort Int.compare
-  (Seq.tabulate (fn i => Util.hash (seed + i) mod keys) n)
-val input2 = Mergesort.sort Int.compare
-  (Seq.tabulate (fn i => Util.hash (seed + n + i) mod keys) n)
+val input1 = Seq.tabulate (fn i => Util.hash (seed + i) mod keys) n
+val () = Mergesort.sortInPlace Int.compare input1
+
+val input2 = Seq.tabulate (fn i => Util.hash (seed + n + i) mod keys) n
+val () = Mergesort.sortInPlace Int.compare input2
+
 val output = ArraySlice.full (ForkJoin.alloc (2 * n))
 
 val () = Benchmark.run impl (fn () =>
