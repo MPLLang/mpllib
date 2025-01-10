@@ -21,4 +21,5 @@ in
   structure GCStats
   structure MLton
   structure VectorExtra
+  structure RuntimeStats
 end

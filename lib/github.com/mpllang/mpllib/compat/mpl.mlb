@@ -17,6 +17,7 @@ in
   structure ReadFile
   structure WriteFile
   structure GCStats
+  structure RuntimeStats
   structure MLton
   structure VectorExtra
 end
