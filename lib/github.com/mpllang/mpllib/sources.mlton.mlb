@@ -52,6 +52,8 @@ MatCOO.sml
 
 CheckSort.sml
 
+MkComplex.sml
+Rat.sml
 Geometry3D.sml
 Geometry2D.sml
 Topology2D.sml
