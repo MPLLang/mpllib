@@ -48,6 +48,8 @@ ParseFile.sml
 AdjacencyGraph.sml
 AdjacencyInt.sml
 
+MatCOO.sml
+
 CheckSort.sml
 
 Geometry3D.sml

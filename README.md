@@ -1,6 +1,6 @@
 # mpllib
-Official library for the [MPL](https://github.com/mpllang/mpl) compiler
-for Parallel ML. MPL extends Standard ML with support for (nested) fork-join
+Grab-bag library for the [MaPLe](https://github.com/mpllang/mpl) compiler.
+MPL extends Standard ML with support for (nested) fork-join
 parallelism, and has excellent multicore performance. This library contains
 a variety of parallel algorithms, data structures, and utilities, including:
   * sequences, sets, dictionaries, matrices, concurrent collections
@@ -93,6 +93,7 @@ Text
 * functor `MkGrep`
 
 Matrices
+* functor `MatCOO`
 * structure `TreeMatrix`
 
 Augmented Maps
