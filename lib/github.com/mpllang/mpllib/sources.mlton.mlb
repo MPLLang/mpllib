@@ -14,6 +14,7 @@ in
 end
 
 Seqifier.sml
+TFlatten.sml
 
 OffsetSearch.sml
 STREAM.sml
@@ -26,6 +27,7 @@ FuncSequence.sml
 BinarySearch.sml
 Merge.sml
 SeqifiedMerge.sml
+FlattenMerge.sml
 StableMerge.sml
 DoubleBinarySearch.sml
 StableMergeLowSpan.sml

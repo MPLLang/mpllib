@@ -21,11 +21,18 @@ val merger =
   | "stable-merge" => StableMerge.merge
   | "stable-merge-low-span" => StableMergeLowSpan.merge
   | "seqified-merge" => SeqifiedMerge.merge
+  | "flatten-merge" => FlattenMerge.merge
   | _ =>
       Util.die
         ("unknown -impl " ^ impl
          ^
-         "; valid options are: merge, stable-merge, stable-merge-low-span, seqified-merge")
+         "; valid options are: merge, stable-merge, stable-merge-low-span, seqified-merge, flatten-merge")
 
 val output = Benchmark.run impl (fn () => merger Int.compare (input1, input2))
 val _ = print (Util.summarizeArraySlice 10 Int.toString output ^ "\n")
+
+val _ =
+  if Seq.equal op= (Merge.mergeSerial Int.compare (input1, input2), output) then
+    print ("correct? yes\n")
+  else
+    print ("correct? NO\n")
