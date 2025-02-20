@@ -109,7 +109,7 @@ val tabulate: (int -> 'a) -> int -> 'a seq
 
 **Work**: `O(sum_i Work(f(i)))`
 
-**Span**: `O(max_i Span(f(i)))`
+**Span**: `O(max_i Span(f(i)) + log(n))`
 
 
 ## Conversions
@@ -163,7 +163,7 @@ val append: 'a seq * 'a seq -> 'a seq
 ```
 
 Concatenates two sequences.
-Linear work and constant span.
+Linear work and logarithmic span.
 
 
 ```sml
@@ -171,7 +171,7 @@ val append3: 'a seq * 'a seq * 'a seq -> 'a seq
 ```
 
 Concatenate three sequences.
-Linear work and constant span.
+Linear work and logarithmic span.
 
 ```sml
 val flatten: 'a seq seq -> 'a seq
@@ -181,7 +181,7 @@ val flatten: 'a seq seq -> 'a seq
 
 **Work**: `O(sum_i |s[i]|)`
 
-**Span**: `O(log|s|)`
+**Span**: `O(log|s| + \max_i log|s[i]|)`
 
 For example:
 > ```
@@ -196,7 +196,7 @@ val rev: 'a seq -> 'a seq
 ```
 
 Reverse the elements of a sequence.
-Linear work and constant span.
+Linear work and logarithmic span.
 
 ## Maps and Zips
 
@@ -209,7 +209,7 @@ a new sequenece `[f(s[0]), f(s[1]), ...]`.
 
 **Work**: `O(sum_i Work(f(s[i])))`
 
-**Span**: `O(max_i Span(f(s[i])))`
+**Span**: `O(max_i Span(f(s[i])) + log|s|)`
 
 
 ```sml
@@ -226,7 +226,7 @@ val enum: 'a seq -> (int * 'a) seq
 
 Pair each element with its index.
 Equivalent to `mapIdx (fn (i, x) => (i,x))`.
-Linear work and constant span.
+Linear work and logarithmic span.
 
 
 ```sml
@@ -235,7 +235,9 @@ val zipWith: ('a * 'b -> 'c) -> 'a seq * 'b seq -> 'c seq
 
 `zipWith f (s, t)` produces `[f(s[0], t[0]), f(s[1], t[1]), ...]`.
 That is, it applies function `f` to pairs of elements at the same index.
-The resulting sequence has length `min(|s|,|t|)`.
+The resulting sequence has length `min(|s|,|t|)`. The work and span are
+asymptotically the same as `map f (zip (s, t))` but the performance in
+practice will be faster.
 
 
 ```sml
@@ -249,6 +251,7 @@ val zip: 'a seq * 'b seq -> ('a * 'b) seq
 ```
 
 A standard zip. Equivalent to `zipWith (fn (x,y) => (x,y))`.
+Linear work and logarithmic span w.r.t. the output length `min(|s|,|t|)`.
 
 ## Parallel Aggregation
 
@@ -262,7 +265,7 @@ Requires that `f` is associative with corresponding identity
 
 Assuming f is O(1):
 
-**Work**: linear
+**Work**: `O(|s|)`
 
 **Span**: `O(log|s|)`
 
@@ -285,9 +288,9 @@ to reduce).
 
 Assuming f is O(1):
 
-**Work**: linear
+**Work**: `O(|s|)`
 
-**Span**: `O(log|s|)`
+**Span**: `O(polylog|s|)`
 
 For example:
 > ```
