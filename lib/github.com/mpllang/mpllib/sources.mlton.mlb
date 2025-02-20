@@ -13,6 +13,8 @@ in
   structure ArraySequence
 end
 
+Seqifier.sml
+
 OffsetSearch.sml
 STREAM.sml
 DelayedStream.sml
@@ -23,6 +25,7 @@ OldDelayedSeq.sml
 FuncSequence.sml
 BinarySearch.sml
 Merge.sml
+SeqifiedMerge.sml
 StableMerge.sml
 DoubleBinarySearch.sml
 StableMergeLowSpan.sml
