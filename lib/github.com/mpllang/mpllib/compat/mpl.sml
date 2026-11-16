@@ -70,7 +70,7 @@ struct
         (LargeInt.toString o Time.toMilliseconds o MPL.GC.localGCTime);
       p "promo time"
         (LargeInt.toString o Time.toMilliseconds o MPL.GC.promoTime);
-      p "internal reclaimed" (LargeInt.toString o MPL.GC.internalBytesReclaimed)
+      p "cc reclaimed" (LargeInt.toString o MPL.GC.ccBytesReclaimed)
     end
 
 end
