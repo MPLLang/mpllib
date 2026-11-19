@@ -10,6 +10,9 @@ merge-bench.mlton
 pure-merge-bench
 pure-merge-bench.mlton
 
+find-first-bench
+find-first-bench.mlton
+
 stable-sort
 stable-sort.mlton
 

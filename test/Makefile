@@ -2,7 +2,7 @@ MPL=mpl
 MLTON=mlton -codegen c
 FLAGS=-default-type int64 -default-type word64
 
-TESTS=stable-merge stable-sort stable-merge-low-span delayed-seq chunk-treap read-write merge-bench pure-merge-bench
+TESTS=stable-merge stable-sort stable-merge-low-span delayed-seq chunk-treap read-write merge-bench pure-merge-bench find-first-bench
 
 MLTON_TESTS := $(addsuffix .mlton,$(TESTS))
 
